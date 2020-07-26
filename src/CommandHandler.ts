@@ -61,6 +61,48 @@ export class KeystoreCommandHandler {
     }
 }
 
+export class PlatformCommandHandler {
+    _getActiveUser() {
+        let user = App.avaClient.keystoreCache.getActiveUser()
+        if (!user) {
+            console.log("Set active user first with setUser")
+        }
+
+        return user
+    }
+
+    async createAccount() {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+        
+        let res = await App.ava.Platform().createAccount(user.username, user.password)
+        log.info(`created`, res)
+        console.log("Created platform account: " + res)
+    }
+
+    async listAccounts() {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.Platform().listAccounts(user.username, user.password)
+        if (!res || !res.length) {
+            console.log("No accounts found")
+            return
+        }
+
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    async getAccount(address:string) {
+        let res = await App.ava.Platform().getAccount(address)
+        console.log(OutputPrinter.pprint(res))
+    }
+}
+
 export class AvmCommandHandler {
     _getActiveUser() {
         let user = App.avaClient.keystoreCache.getActiveUser()
@@ -69,6 +111,36 @@ export class AvmCommandHandler {
         }
 
         return user
+    }
+
+    async importAva(dest: string) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.AVM().importAVA(user.username, user.password, dest)
+        console.log("Submitted transaction: " + res)
+    }
+    
+    async exportAva(amount:number, dest:string) {
+        if (!amount) {
+            console.warn("usage: exportAva <amount> <destination>")
+            return
+        }
+
+        if (!dest) {
+            console.warn("usage: exportAva <amount> <destination>")
+            return
+        }
+
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.AVM().exportAVA(user.username, user.password, dest, amount)
+        console.log("Submitted transaction: " + res)
     }
 
     async listAddresses() {
@@ -159,6 +231,7 @@ export class CommandHandler {
     infoHandler: InfoCommandHandler
     keystoreHandler: KeystoreCommandHandler
     avmHandler: AvmCommandHandler
+    platformHandler: PlatformCommandHandler
     handlerMap
     activeContext: string
 
@@ -169,11 +242,13 @@ export class CommandHandler {
         this.infoHandler = new InfoCommandHandler()
         this.keystoreHandler = new KeystoreCommandHandler()
         this.avmHandler = new AvmCommandHandler()
+        this.platformHandler = new PlatformCommandHandler()
 
         this.handlerMap = {
             "info": this.infoHandler,
             "keystore": this.keystoreHandler,
-            "avm": this.avmHandler
+            "avm": this.avmHandler,
+            "platform": this.platformHandler
         }
 
         for (let context in this.handlerMap) {
@@ -288,4 +363,3 @@ export class CommandHandler {
     }
 
 }
-

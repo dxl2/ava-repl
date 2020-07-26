@@ -19,7 +19,7 @@ export class AvaShell {
                 return
             }
 
-            log.info("eval", cmd)
+            // log.info("eval", cmd)
             if (cmd == "exit") {
                 if (App.commandHandler.activeContext) {
                     App.commandHandler.activeContext = null
