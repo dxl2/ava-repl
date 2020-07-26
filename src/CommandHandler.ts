@@ -198,8 +198,8 @@ export class CommandHandler {
         return out
     }
 
-    getContextCommands(context: CommandContext) {
-        return this.contextMethodMap[context]
+    getContextCommands(context) {
+        return this.contextMethodMap[context] || []
     }
 
     printHelp() {

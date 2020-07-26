@@ -53,8 +53,12 @@ export class AvaShell {
         // log.info("in completer", params, params[0])
         if (!App.commandHandler.context) {
             if (params.length == 1) {
-                return this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())
-            }            
+                let completions = this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())
+                return [completions, params[0]]
+            } else if (params.length == 2) {
+                let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
+                return [completions, params[1]]
+            }
         }
     }
 
@@ -62,7 +66,7 @@ export class AvaShell {
         // log.info("getCompl", needle, haystack)
         let matches = haystack.filter((c) => c.startsWith(needle))
 
-        return [matches, needle]
+        return matches
     }
 }
 
