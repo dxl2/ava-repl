@@ -150,13 +150,17 @@ export enum CommandContext {
     AVM = "avm"
 }
 
+const META_COMMANDS = [
+    "help",
+    "exit"
+]
 
 export class CommandHandler {
     infoHandler: InfoCommandHandler
     keystoreHandler: KeystoreCommandHandler
     avmHandler: AvmCommandHandler
     handlerMap
-    context: CommandContext
+    activeContext: string
 
     contextMethodMap:{[key:string]:string[]} = {}
 
@@ -188,7 +192,9 @@ export class CommandHandler {
 
     getTopLevelCommands() {
         let out = []
-        out.push("help")
+        for (let cmd of META_COMMANDS) {
+            out.push(cmd)
+        }
 
         for (let context in this.handlerMap) {
             out.push(context)
@@ -199,45 +205,76 @@ export class CommandHandler {
     }
 
     getContextCommands(context) {
-        return this.contextMethodMap[context] || []
+        let out = this.contextMethodMap[context] || []
+
+        for (let cmd of META_COMMANDS) {
+            out.push(cmd)
+        }
+
+        return out
     }
 
     printHelp() {
-        log.info("ddx", this.contextMethodMap)
-        
+        console.log("-------------------")
         console.log("SUPPORTED COMMANDS:")
+        console.log("-------------------")
         for (let context in this.contextMethodMap) {
-            console.log(context)
+            if (this.activeContext) {
+                if (context != this.activeContext) {
+                    continue
+                }
+            } else {
+                console.log(context)
+            }
+            
             for (let method of this.contextMethodMap[context]) {
                 console.log(`\t${method}`)
             }
 
-            console.log("\n")
+            console.log("")
         }
+    }
+
+    printHelpBasic() {
+        console.error("Invalid command. Type help to see all supported commands")
+    }
+
+    isContext(context) {
+        return this.handlerMap[context]
     }
 
     async handleCommand(cmd:string) {
         let params = StringUtility.splitTokens(cmd)
+
+        if (params.length < 1) {
+            this.printHelpBasic()
+            return
+        }
 
         if (params.length == 1) {
             if (params[0] == "help") {
                 this.printHelp()
                 return
             }
-        }
+        }        
+        
+        let context = this.activeContext
 
-        if (params.length < 2) {
-            console.error("Invalid command. Type help to see all supported commands")
-        }
+        if (!context) {
+            if (params.length < 2) {
+                this.printHelpBasic()
+                return
+            }
 
-        let context = params.shift()
-        let method = params.shift()
+            context = params.shift()
+        }
 
         let handler = this.handlerMap[context]
         if (!handler) {
             throw new CommandError("Unknown context: " + context, "not_found")
         }
 
+        let method = params.shift()
         let methodFn = handler[method]
         if (!methodFn) {
             throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")

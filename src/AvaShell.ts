@@ -6,6 +6,7 @@ import { App } from "./App";
 import { CommandHandler } from "./CommandHandler";
 import { log } from "./AppLog";
 import { StringUtility } from "./StringUtility";
+import { AppRuntime } from "./AppRuntime";
 
 let replServer
 
@@ -19,6 +20,22 @@ export class AvaShell {
             }
 
             log.info("eval", cmd)
+            if (cmd == "exit") {
+                if (App.commandHandler.activeContext) {
+                    App.commandHandler.activeContext = null
+                    this.updatePrompt()
+                    callback(null, null)
+                    return
+                } else {
+                    process.exit()
+                }
+            } else if (App.commandHandler.isContext(cmd) && App.commandHandler.activeContext != cmd) {
+                App.commandHandler.activeContext = cmd
+                this.updatePrompt()
+                callback(null, null)
+                return
+            }
+            
             let res = await App.commandHandler.handleCommand(cmd)
             // log.info("res", res)
             callback(null, res)
@@ -36,6 +53,15 @@ export class AvaShell {
         }
     }
 
+    static updatePrompt() {
+        let prompt = "ava"
+        if (App.commandHandler.activeContext) {
+            prompt = `${prompt} ${App.commandHandler.activeContext}`
+        }
+        prompt += "> "
+        replServer.setPrompt(prompt)
+    }
+
     static formatOutput(output) {
         if (output == null) {
             return ""
@@ -47,17 +73,24 @@ export class AvaShell {
     static completer(line) {        
         let params = StringUtility.splitTokens(line)
         if (!params.length) {
-            return
+            return [[], ""]
         }
 
         // log.info("in completer", params, params[0])
-        if (!App.commandHandler.context) {
+        if (!App.commandHandler.activeContext) {
             if (params.length == 1) {
                 let completions = this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())
                 return [completions, params[0]]
             } else if (params.length == 2) {
                 let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
                 return [completions, params[1]]
+            }
+        } else {
+            if (params.length == 1) {
+                let completions = this.getCompletions(params[0], App.commandHandler.getContextCommands(App.commandHandler.activeContext))
+                return [completions, params[0]]
+            } else {
+                return [[], ""]
             }
         }
     }
@@ -89,25 +122,7 @@ async function main() {
 
 main()
 
-// replServer.defineCommand('info nodeid', {
-//     help: 'Say hello',
-//     action(name) {
-//         this.clearBufferedCommand();
-//         console.log(`Hello, ${name}!`);
-//         this.displayPrompt();
-//     }
-// });
-
-// replServer.defineCommand('info bee', {
-//     help: 'Say hello2',
-//     action(name) {
-//         this.clearBufferedCommand();
-//         console.log(`Hello2, ${name}!`);
-//         this.displayPrompt();
-//     }
-// });
-
-// replServer.defineCommand('saybye', function saybye() {
-//     console.log('Goodbye!');
-//     this.close();
-// });
+process.on('unhandledRejection', async (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    await AppRuntime.sleep(600 * 1000)
+});
