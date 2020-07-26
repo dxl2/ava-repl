@@ -1,0 +1,12 @@
+[Unit]
+Description=ava
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ava
+ExecStart=/opt/ava/bin/ava
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
