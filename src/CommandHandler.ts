@@ -312,7 +312,7 @@ export class CommandHandler {
     contextMethodMap:{[key:string]:string[]} = {}
 
     constructor() {
-        log.info("init CommandHandler")
+        // log.info("init CommandHandler")
         this.infoHandler = new InfoCommandHandler()
         this.keystoreHandler = new KeystoreCommandHandler()
         this.avmHandler = new AvmCommandHandler()

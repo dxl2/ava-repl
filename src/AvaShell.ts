@@ -105,6 +105,14 @@ export class AvaShell {
 
 async function main() {
     await App.init()
+
+    if (process.argv.length > 2) {
+        // standalone invocation
+        let args = process.argv.slice(2)
+        await App.commandHandler.handleCommand(args.join(" "))
+        return
+    }
+
     console.log("****************************************")
     console.log("AVA shell initialized.")
     console.log("Node ID: " + App.avaClient.nodeId)
