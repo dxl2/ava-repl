@@ -5,6 +5,79 @@ import { Debug } from "./Debug";
 import { OutputPrinter } from "./OutputPrinter";
 import BN from 'bn.js';
 import { StringUtility } from "./StringUtility";
+import 'reflect-metadata'
+
+class FieldSpec {
+    constructor(public name:string, public isRequired=true) {
+
+    }
+
+    get toHelpString() {
+        if (this.isRequired) {
+            return `<${this.name}>`
+        } else {
+            return `[${this.name}]`
+        }
+    }
+}
+
+class CommandSpec {
+    context: string
+    countRequiredFields = 0
+
+    constructor(public name: string, public fields: FieldSpec[]) {
+        for (let field of fields) {
+            if (field.isRequired) {
+                this.countRequiredFields++
+            }
+        }
+    }
+
+    validateInput(...params) {
+        if (params.length != this.countRequiredFields) {
+            return false
+        }
+
+        return true
+    }
+
+    printUsage(prefix="") {
+        let out = `${this.name}`
+        let fieldStrs = []
+
+        for (let field of this.fields) {
+            fieldStrs.push(field.toHelpString)
+        }
+
+        if (fieldStrs.length) {
+            out += " " + fieldStrs.join(" ")
+        }
+        
+        console.log(`${prefix}${out}`)
+    }
+
+    get id() {
+        return `${this.context}_${this.name}`
+    }
+}
+
+const commandsMetadata = Symbol("commands");
+
+export function command(definition: any) {
+    // log.error(`defining column`, definition)
+    // return a function that binds the property name to metadata input (definition)
+    return (target: object, propertyKey: string) => {
+        let properties: {} = Reflect.getMetadata(commandsMetadata, target);
+
+        if (properties) {
+            properties[propertyKey] = definition;
+        } else {
+            properties = {}
+            properties[propertyKey] = definition;
+            Reflect.defineMetadata(commandsMetadata, properties, target);
+        }
+    }
+}
 
 export class CommandError extends Error {
     code: any;
@@ -40,22 +113,14 @@ export class KeystoreCommandHandler {
         // return res
     }
 
+    @command(new CommandSpec("createUser", [new FieldSpec("username"), new FieldSpec("password")]))
     async createUser(username, password) {
-        if (!username) {
-            log.error("missing username")
-            return
-        }
-
-        if (!password) {
-            log.error("missing password")
-            return
-        }
-
         let user = await App.ava.NodeKeys().createUser(username, password)
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password))
         log.info(`created user: ${username}`)
     }
     
+    @command(new CommandSpec("setUser", [new FieldSpec("username"), new FieldSpec("password")]))
     async setUser(username:string, password?:string) {
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
     }
@@ -97,6 +162,7 @@ export class PlatformCommandHandler {
         console.log(OutputPrinter.pprint(res))
     }
 
+    @command(new CommandSpec("getAccount", [new FieldSpec("address")]))
     async getAccount(address:string) {
         let res = await App.ava.Platform().getAccount(address)
         console.log(OutputPrinter.pprint(res))
@@ -113,6 +179,7 @@ export class AvmCommandHandler {
         return user
     }
 
+    @command(new CommandSpec("importAva", [new FieldSpec("dest")]))
     async importAva(dest: string) {
         let user = this._getActiveUser()
         if (!user) {
@@ -123,6 +190,7 @@ export class AvmCommandHandler {
         console.log("Submitted transaction: " + res)
     }
     
+    @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("dest")]))
     async exportAva(amount:number, dest:string) {
         if (!amount) {
             console.warn("usage: exportAva <amount> <destination>")
@@ -179,11 +247,12 @@ export class AvmCommandHandler {
     //     log.info("res", res)
     // }
 
-    async setActiveUser(username: string, password?: string) {
-        console.log(`Set active user: ${username}`)
-        App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
-    }
+    // async setActiveUser(username: string, password?: string) {
+    //     console.log(`Set active user: ${username}`)
+    //     App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
+    // }
 
+    @command(new CommandSpec("getBalance", [new FieldSpec("address"), new FieldSpec("asset", false)]))
     async getBalance(address:string, asset:string="AVA") {
         log.info("ddx get bal", address, asset)
         let bal = await App.ava.AVM().getBalance(address, asset) as BN
@@ -191,12 +260,14 @@ export class AvmCommandHandler {
         // console.log(OutputPrinter.pprint(bal))
     }
 
+    @command(new CommandSpec("getAllBalances", [new FieldSpec("address")]))
     async getAllBalances(address) {
         let bal = await App.ava.AVM().getAllBalances(address)
         console.log(`Balance on ${address} for all assets`)
         console.log(OutputPrinter.pprint(bal))
     }
 
+    @command(new CommandSpec("send", [new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", false)]))
     async send(fromAddress:string, toAddress:string, amount:number, asset="AVA") {
         log.info("ddx", this)
         let user = this._getActiveUser()
@@ -210,6 +281,7 @@ export class AvmCommandHandler {
         console.log(OutputPrinter.pprint(res))
     }
 
+    @command(new CommandSpec("checkTx", [new FieldSpec("txId")]))
     async checkTx(txId:string) {
         let res = await App.ava.AVM().getTxStatus(txId)
         console.log("Transaction state: " + res)
@@ -219,7 +291,8 @@ export class AvmCommandHandler {
 export enum CommandContext {
     Info = "info",
     Keystore = "keystore",
-    AVM = "avm"
+    AVM = "avm",
+    Platform = "platform"
 }
 
 const META_COMMANDS = [
@@ -234,6 +307,7 @@ export class CommandHandler {
     platformHandler: PlatformCommandHandler
     handlerMap
     activeContext: string
+    commandSpecMap:{[key:string]: CommandSpec} = {}
 
     contextMethodMap:{[key:string]:string[]} = {}
 
@@ -243,6 +317,13 @@ export class CommandHandler {
         this.keystoreHandler = new KeystoreCommandHandler()
         this.avmHandler = new AvmCommandHandler()
         this.platformHandler = new PlatformCommandHandler()
+
+        this.addCommandSpec(this.keystoreHandler, CommandContext.Keystore)        
+        this.addCommandSpec(this.infoHandler, CommandContext.Info)        
+        this.addCommandSpec(this.avmHandler, CommandContext.AVM)        
+        this.addCommandSpec(this.platformHandler, CommandContext.Platform)        
+
+        // log.info("commandSpecMap", this.commandSpecMap)
 
         this.handlerMap = {
             "info": this.infoHandler,
@@ -262,6 +343,14 @@ export class CommandHandler {
 
                 this.contextMethodMap[context].push(m)
             }            
+        }
+    }
+
+    addCommandSpec(obj, context:string) {
+        let map = Reflect.getMetadata(commandsMetadata, obj)
+        for (let commandName in map) {            
+            map[commandName].context = context
+            this.commandSpecMap[map[commandName].id] = map[commandName]
         }
     }
 
@@ -303,7 +392,12 @@ export class CommandHandler {
             }
             
             for (let method of this.contextMethodMap[context]) {
-                console.log(`\t${method}`)
+                let commandSpec = this.getCommandSpec(context, method)
+                if (commandSpec) {
+                    commandSpec.printUsage("    ")
+                } else {
+                    console.log(`    ${method}`)
+                }                
             }
 
             console.log("")
@@ -316,6 +410,11 @@ export class CommandHandler {
 
     isContext(context) {
         return this.handlerMap[context]
+    }
+
+    getCommandSpec(context, method) {
+        let commandId = `${context}_${method}`
+        return this.commandSpecMap[commandId]
     }
 
     async handleCommand(cmd:string) {
@@ -353,6 +452,13 @@ export class CommandHandler {
         let methodFn = handler[method]
         if (!methodFn) {
             throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
+        }
+        
+        let commandSpec = this.getCommandSpec(context, method)
+        if (commandSpec && !commandSpec.validateInput(...params)) {
+            console.log("Invalid Arguments")
+            commandSpec.printUsage("Usage: ")
+            return
         }
 
         try {

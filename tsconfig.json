@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./",
+        "outDir": "./build",
+        "target": "es5",
+        "lib": [
+            "es2016"
+        ],
+        "skipLibCheck": true,
+        "extendedDiagnostics": false,
+        "listFiles": false,
+        "experimentalDecorators": true,
+        "downlevelIteration": true,
+        "types": [
+            "reflect-metadata"
+        ]
+    }
+}
