@@ -26,10 +26,19 @@ Balance on X-99hXf8QFHnSAE8f3jBLEUuA1ErPw1TQUh for asset AVA: 8990
 To (optionally) set context for future commands, input `info`, `keystore`, `avm`, or `platform`. The shell prompt will reflect the current context. To clear context, input `exit`. 
 You can cache credentials for current active user so you don't need to repeatedly input them.
 ```
-avm
-setUser <username> <password>
-createAddress
-listAddresses
+ava> keystore setUser test1 TestingAva123*
+
+ava> avm
+
+ava avm> createAddress
+Created Address:
+X-5DSRK4P5vtknsCWfqUoFjsXdHmMLsqK5B
+
+ava avm> listAddresses
+Addresses for keystore: test1
+X-99hXf8QFHnSAE8f3jBLEUuA1ErPw1TQUh
+X-25LttFTMh2F766XqjKW3uSb19NojHnXnW
+X-5DSRK4P5vtknsCWfqUoFjsXdHmMLsqK5B
 ```
 
 Keystore credential can also be set as environment variables `AVA_KEYSTORE_USERNAME` and `AVA_KEYSTORE_PASSWORD`.
