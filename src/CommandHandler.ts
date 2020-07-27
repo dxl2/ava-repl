@@ -254,7 +254,6 @@ export class AvmCommandHandler {
 
     @command(new CommandSpec("getBalance", [new FieldSpec("address"), new FieldSpec("asset", false)]))
     async getBalance(address:string, asset:string="AVA") {
-        log.info("ddx get bal", address, asset)
         let bal = await App.ava.AVM().getBalance(address, asset) as BN
         console.log(`Balance on ${address} for asset ${asset}: ` + bal.toString(10))
         // console.log(OutputPrinter.pprint(bal))
