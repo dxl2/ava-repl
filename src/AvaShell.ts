@@ -11,6 +11,13 @@ import { AppRuntime } from "./AppRuntime";
 let replServer
 
 export class AvaShell {
+    static init() {
+        App.pendingTxService.setCallback((txid)=> {
+            console.log(`\nTransaction ${txid} accepted`)
+            replServer.displayPrompt(true)
+        })
+    }
+
     static async evalHandler(cmd:string, context, filename, callback) {
         try {
             cmd = cmd.trim()
@@ -105,6 +112,7 @@ export class AvaShell {
 
 async function main() {
     await App.init()
+    AvaShell.init()
 
     if (process.argv.length > 2) {
         // standalone invocation

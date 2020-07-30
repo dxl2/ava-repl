@@ -6,6 +6,7 @@ import { AppRuntime } from "./AppRuntime";
 import { AvaClient, AvaKeystoreUser } from "./AvaClient";
 import { CommandHandler } from "./CommandHandler";
 import { AvaKeystoreCache } from "./AvaKeystoreCache";
+import { PendingTxService } from "./PendingTxService";
 
 const AVA_KEYSTORE_USERNAME_ENV = "AVA_KEYSTORE_USERNAME"
 const AVA_KEYSTORE_PASSWORD_ENV = "AVA_KEYSTORE_PASSWORD"
@@ -13,7 +14,8 @@ const AVA_KEYSTORE_PASSWORD_ENV = "AVA_KEYSTORE_PASSWORD"
 export class App {
     static ava: avalanche.Avalanche
     static avaClient: AvaClient
-    static commandHandler: CommandHandler    
+    static commandHandler: CommandHandler
+    static pendingTxService = new PendingTxService()
 
     static async init() {
         if (this.ava) {
@@ -38,5 +40,7 @@ export class App {
                 this.avaClient.keystoreCache.addUser(au, true)
             }
         }
+
+        this.pendingTxService.start()
     }
 }

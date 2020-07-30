@@ -1,7 +1,7 @@
 # AVA REPL Shell
 
 A full featured REPL shell and CLI for Ava. This tool can be used in either REPL mode or standalone mode. 
-It supports tab completion, context switching, Keystore credentials caching, and more.
+It supports tab completion, context switching, Keystore credentials caching, tracking submitted transaction status, and more.
 
 ## Build Instructions
 ```

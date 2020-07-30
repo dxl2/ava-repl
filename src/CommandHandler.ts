@@ -6,6 +6,7 @@ import { OutputPrinter } from "./OutputPrinter";
 import BN from 'bn.js';
 import { StringUtility } from "./StringUtility";
 import 'reflect-metadata'
+import { PendingTxState } from "./PendingTxService";
 
 class FieldSpec {
     constructor(public name:string, public isRequired=true) {
@@ -277,13 +278,27 @@ export class AvmCommandHandler {
         let res = await App.ava.AVM().send(user.username, user.password, asset, amount, toAddress, [fromAddress])
         // console.log(`Balance on ${address} for all assets`)
         console.log("submitted transaction...")
-        console.log(OutputPrinter.pprint(res))
+        console.log(res)
+        App.pendingTxService.add(res)
     }
 
     @command(new CommandSpec("checkTx", [new FieldSpec("txId")]))
     async checkTx(txId:string) {
         let res = await App.ava.AVM().getTxStatus(txId)
         console.log("Transaction state: " + res)
+    }
+
+    async checkTxs() {
+        let ptxs = App.pendingTxService.list()
+        if (!ptxs.length) {
+            console.log("No transactions submitted")
+            return
+        }
+        
+        console.log("Submitted transactions")
+        for (let tx of ptxs) {
+            console.log(`${tx.id}\t\t${tx.ts.fromNow()}\t\t${tx.state || PendingTxState.Processing}`)
+        }
     }
 }
 
