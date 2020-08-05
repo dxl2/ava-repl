@@ -3,7 +3,7 @@ import * as avalanche from "avalanche";
 import BN from 'bn.js';
 import { Buffer } from 'buffer/'
 import { App } from "./App";
-import { CommandHandler } from "./CommandHandler";
+import { CommandHandler, CommandContext } from "./CommandHandler";
 import { log } from "./AppLog";
 import { StringUtility } from "./StringUtility";
 import { AppRuntime } from "./AppRuntime";
@@ -79,14 +79,19 @@ export class AvaShell {
 
     static completer(line) {        
         let params = StringUtility.splitTokens(line)
-        if (!params.length) {
-            return [[], ""]
+        if (!params.length) {            
+            return [params[0], App.commandHandler.getTopLevelCommands()]
         }
 
         // log.info("in completer", params, params[0])
         if (!App.commandHandler.activeContext) {
             if (params.length == 1) {
                 let completions = this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())
+
+                if (App.commandHandler.isContext(params[0])) {
+                    return [ App.commandHandler.getContextCommands(params[0]), params[0] ]
+                }
+
                 return [completions, params[0]]
             } else if (params.length == 2) {
                 let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))

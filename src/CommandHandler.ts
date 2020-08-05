@@ -383,7 +383,11 @@ export class CommandHandler {
     }
 
     getContextCommands(context) {
-        let out = this.contextMethodMap[context] || []
+        let out = []
+
+        for (let cmd of this.contextMethodMap[context] || []) {
+            out.push(cmd)
+        }
 
         for (let cmd of META_COMMANDS) {
             out.push(cmd)
@@ -392,15 +396,14 @@ export class CommandHandler {
         return out
     }
 
-    printHelp() {
+    printHelp(targetContext) {
+        targetContext = targetContext || this.activeContext
         console.log("-------------------")
         console.log("SUPPORTED COMMANDS:")
         console.log("-------------------")
         for (let context in this.contextMethodMap) {
-            if (this.activeContext) {
-                if (context != this.activeContext) {
-                    continue
-                }
+            if (targetContext && context != targetContext) {
+                continue
             } else {
                 console.log(context)
             }
@@ -439,12 +442,13 @@ export class CommandHandler {
             return
         }
 
-        if (params.length == 1) {
-            if (params[0] == "help") {
-                this.printHelp()
-                return
-            }
-        }        
+        if (params.length == 1 && params[0] == "help") {
+            this.printHelp(null)
+            return
+        } else if (params.length == 2 && this.isContext(params[0]) && params[1] == "help") {
+            this.printHelp(params[0])
+            return
+        }
         
         let context = this.activeContext
 
