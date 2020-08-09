@@ -44,7 +44,8 @@ export class PendingTxService extends PollableService {
                 continue
             }
 
-            if (tx.state) {
+            if (tx.state && tx.state != PendingTxState.Processing) {
+                // log.info("aalready have state")
                 continue
             }
 

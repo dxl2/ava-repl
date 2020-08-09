@@ -192,7 +192,7 @@ export class AvmCommandHandler {
     }
     
     @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("dest")]))
-    async exportAva(amount:number, dest:string) {
+    async exportAva(dest:string, amount:number) {
         if (!amount) {
             console.warn("usage: exportAva <amount> <destination>")
             return
@@ -228,6 +228,25 @@ export class AvmCommandHandler {
         
         for (let address of res) {
             console.log(address)
+        }
+    }
+
+    async listBalances() {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+        
+        let res = await App.ava.AVM().listAddresses(user.username, user.password)
+
+        console.log("Addresses for keystore: " + user.username)
+        if (!res || !res.length) {
+            console.log("None found")
+            return
+        }
+        
+        for (let address of res) {
+            await this.getAllBalances(address)
         }
     }
 
@@ -288,7 +307,7 @@ export class AvmCommandHandler {
         console.log("Transaction state: " + res)
     }
 
-    async checkTxs() {
+    async listTxs() {
         let ptxs = App.pendingTxService.list()
         if (!ptxs.length) {
             console.log("No transactions submitted")
