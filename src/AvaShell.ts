@@ -34,7 +34,8 @@ export class AvaShell {
                     callback(null, null)
                     return
                 } else {
-                    process.exit()
+                    console.log("Exiting...")
+                    process.exit()                    
                 }
             } else if (App.commandHandler.isContext(cmd) && App.commandHandler.activeContext != cmd) {
                 App.commandHandler.activeContext = cmd

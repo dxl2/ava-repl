@@ -26,7 +26,7 @@ class CommandSpec {
     context: string
     countRequiredFields = 0
 
-    constructor(public name: string, public fields: FieldSpec[]) {
+    constructor(public name: string, public fields: FieldSpec[], public description:string) {
         for (let field of fields) {
             if (field.isRequired) {
                 this.countRequiredFields++
@@ -55,6 +55,8 @@ class CommandSpec {
         }
         
         console.log(`${prefix}${out}`)
+        console.log(`${prefix}- ${this.description}`)
+        console.log()
     }
 
     get id() {
@@ -114,14 +116,14 @@ export class KeystoreCommandHandler {
         // return res
     }
 
-    @command(new CommandSpec("createUser", [new FieldSpec("username"), new FieldSpec("password")]))
+    @command(new CommandSpec("createUser", [new FieldSpec("username"), new FieldSpec("password")], "Creates a user in the node’s database."))
     async createUser(username, password) {
         let user = await App.ava.NodeKeys().createUser(username, password)
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password))
         log.info(`created user: ${username}`)
     }
     
-    @command(new CommandSpec("setUser", [new FieldSpec("username"), new FieldSpec("password")]))
+    @command(new CommandSpec("setUser", [new FieldSpec("username"), new FieldSpec("password")], "Sets the active user for future avm commands"))
     async setUser(username:string, password?:string) {
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
     }
@@ -163,7 +165,7 @@ export class PlatformCommandHandler {
         console.log(OutputPrinter.pprint(res))
     }
 
-    @command(new CommandSpec("getAccount", [new FieldSpec("address")]))
+    @command(new CommandSpec("getAccount", [new FieldSpec("address")], "Fetch P-Chain account by address"))
     async getAccount(address:string) {
         let res = await App.ava.Platform().getAccount(address)
         console.log(OutputPrinter.pprint(res))
@@ -180,7 +182,7 @@ export class AvmCommandHandler {
         return user
     }
 
-    @command(new CommandSpec("importAva", [new FieldSpec("dest")]))
+    @command(new CommandSpec("importAva", [new FieldSpec("dest")], "Finalize a transfer of AVA from the P-Chain to the X-Chain."))
     async importAva(dest: string) {
         let user = this._getActiveUser()
         if (!user) {
@@ -191,7 +193,7 @@ export class AvmCommandHandler {
         console.log("Submitted transaction: " + res)
     }
     
-    @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("dest")]))
+    @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("dest")], "Send AVA from the X-Chain to an account on the P-Chain."))
     async exportAva(dest:string, amount:number) {
         if (!amount) {
             console.warn("usage: exportAva <amount> <destination>")
@@ -272,21 +274,21 @@ export class AvmCommandHandler {
     //     App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
     // }
 
-    @command(new CommandSpec("getBalance", [new FieldSpec("address"), new FieldSpec("asset", false)]))
+    @command(new CommandSpec("getBalance", [new FieldSpec("address"), new FieldSpec("asset", false)], "Get the balance of an asset in an account"))
     async getBalance(address:string, asset:string="AVA") {
         let bal = await App.ava.AVM().getBalance(address, asset) as BN
         console.log(`Balance on ${address} for asset ${asset}: ` + bal.toString(10))
         // console.log(OutputPrinter.pprint(bal))
     }
 
-    @command(new CommandSpec("getAllBalances", [new FieldSpec("address")]))
+    @command(new CommandSpec("getAllBalances", [new FieldSpec("address")], "Get the balance of all assets in an account"))
     async getAllBalances(address) {
         let bal = await App.ava.AVM().getAllBalances(address)
         console.log(`Balance on ${address} for all assets`)
         console.log(OutputPrinter.pprint(bal))
     }
 
-    @command(new CommandSpec("send", [new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", false)]))
+    @command(new CommandSpec("send", [new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", false)], "Sends asset from an address managed by this node's keystore to a destination address"))
     async send(fromAddress:string, toAddress:string, amount:number, asset="AVA") {
         log.info("ddx", this)
         let user = this._getActiveUser()
@@ -301,12 +303,13 @@ export class AvmCommandHandler {
         App.pendingTxService.add(res)
     }
 
-    @command(new CommandSpec("checkTx", [new FieldSpec("txId")]))
+    @command(new CommandSpec("checkTx", [new FieldSpec("txId")], "Check the status of a transaction id"))
     async checkTx(txId:string) {
         let res = await App.ava.AVM().getTxStatus(txId)
         console.log("Transaction state: " + res)
     }
 
+    @command(new CommandSpec("listTxs", [], "Show the status transactions that have been submitted in this session"))
     async listTxs() {
         let ptxs = App.pendingTxService.list()
         if (!ptxs.length) {
@@ -433,6 +436,7 @@ export class CommandHandler {
                     commandSpec.printUsage("    ")
                 } else {
                     console.log(`    ${method}`)
+                    console.log()
                 }                
             }
 
