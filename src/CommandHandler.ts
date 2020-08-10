@@ -169,7 +169,62 @@ export class PlatformCommandHandler {
     async getAccount(address:string) {
         let res = await App.ava.Platform().getAccount(address)
         console.log(OutputPrinter.pprint(res))
+        return res
     }
+
+    @command(new CommandSpec("importAva", [new FieldSpec("dest"), new FieldSpec("payerNonce", false)], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
+    async importAva(dest: string, payerNonce:number) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        if (!payerNonce) {
+            let account = await this.getAccount(dest)
+            if (!account) {
+                console.error("Cannot find account " + dest)
+            } else {
+                payerNonce = +account["nonce"] + 1
+            }
+        }
+
+        let res = await App.ava.Platform().importAVA(user.username, user.password, dest, payerNonce)
+
+        console.log("Issuing Transaction...")
+        console.log(res)
+        
+        await this.issueTx(res)
+        
+    }
+
+    @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("x-dest"), new FieldSpec("payerNonce")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
+    async exportAva(dest: string, amount: number, payerNonce:number) {        
+        payerNonce = +payerNonce
+        if (isNaN(payerNonce)) {
+            console.error("Invalid payer nonce: " + payerNonce)
+            return
+        }
+
+        // remove any prefix X-
+        let dparts = dest.split("-")
+        if (dparts.length > 1) {
+            dest = dparts[1]
+        }
+
+        let res = await App.ava.Platform().exportAVA(amount, dest, payerNonce)
+
+        console.log("Issuing Transaction...")
+        console.log(res)
+
+        await this.issueTx(res)
+    }
+
+    @command(new CommandSpec("issueTx", [new FieldSpec("tx")], "Issue a transaction to the platform chain"))
+    async issueTx(tx: string) {
+        let txId = await App.ava.Platform().issueTx(tx)
+        console.log("result: " + txId)
+    }
+
 }
 
 export class AvmCommandHandler {
@@ -191,20 +246,11 @@ export class AvmCommandHandler {
 
         let res = await App.ava.AVM().importAVA(user.username, user.password, dest)
         console.log("Submitted transaction: " + res)
+        App.pendingTxService.add(res)
     }
     
-    @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("dest")], "Send AVA from the X-Chain to an account on the P-Chain."))
+    @command(new CommandSpec("exportAva", [new FieldSpec("dest"), new FieldSpec("amount")], "Send AVA from the X-Chain to an account on the P-Chain."))
     async exportAva(dest:string, amount:number) {
-        if (!amount) {
-            console.warn("usage: exportAva <amount> <destination>")
-            return
-        }
-
-        if (!dest) {
-            console.warn("usage: exportAva <amount> <destination>")
-            return
-        }
-
         let user = this._getActiveUser()
         if (!user) {
             return
@@ -212,6 +258,7 @@ export class AvmCommandHandler {
 
         let res = await App.ava.AVM().exportAVA(user.username, user.password, dest, amount)
         console.log("Submitted transaction: " + res)
+        App.pendingTxService.add(res)
     }
 
     async listAddresses() {
