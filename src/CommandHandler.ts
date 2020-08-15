@@ -3,10 +3,11 @@ import { AvaKeystoreUser } from "./AvaClient";
 import { log } from "./AppLog";
 import { Debug } from "./Debug";
 import { OutputPrinter } from "./OutputPrinter";
-import BN from 'bn.js';
+import { BN } from "bn.js"
 import { StringUtility } from "./StringUtility";
 import 'reflect-metadata'
 import { PendingTxState } from "./PendingTxService";
+import * as moment from 'moment';
 
 class FieldSpec {
     constructor(public name:string, public isRequired=true) {
@@ -96,6 +97,7 @@ export class CommandError extends Error {
 
 export class InfoCommandHandler {
     nodeId() {
+        console.log(App.avaClient.nodeId)
         return App.avaClient.nodeId
     }
 }
@@ -180,12 +182,7 @@ export class PlatformCommandHandler {
         }
 
         if (!payerNonce) {
-            let account = await this.getAccount(dest)
-            if (!account) {
-                console.error("Cannot find account " + dest)
-            } else {
-                payerNonce = +account["nonce"] + 1
-            }
+            payerNonce = await this.getNextPayerNonce(dest)
         }
 
         let res = await App.ava.Platform().importAVA(user.username, user.password, dest, payerNonce)
@@ -195,6 +192,15 @@ export class PlatformCommandHandler {
         
         await this.issueTx(res)
         
+    }
+
+    async getNextPayerNonce(dest:string) {
+        let account = await this.getAccount(dest)
+        if (!account) {
+            throw new Error("Cannot find account " + dest)
+        } else {
+            return +account["nonce"] + 1
+        }
     }
 
     @command(new CommandSpec("exportAva", [new FieldSpec("amount"), new FieldSpec("x-dest"), new FieldSpec("payerNonce")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
@@ -222,7 +228,59 @@ export class PlatformCommandHandler {
     @command(new CommandSpec("issueTx", [new FieldSpec("tx")], "Issue a transaction to the platform chain"))
     async issueTx(tx: string) {
         let txId = await App.ava.Platform().issueTx(tx)
-        console.log("result: " + txId)
+        console.log("result txId: " + txId)
+    }
+
+    @command(new CommandSpec("addDefaultSubnetValidator", [new FieldSpec("destination"), new FieldSpec("stakeAmount"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
+    async addDefaultSubnetValidator(destination: string, stakeAmount:number, endTimeDays:number) {
+        let now = moment().seconds(0).milliseconds(0)
+        let startTime = now.clone().add(1, "minute")
+
+        let endTime = now.clone().add(endTimeDays, "days")
+
+        let payerNonce = await this.getNextPayerNonce(destination)
+
+        let args = [App.avaClient.nodeId,
+            startTime.toDate(),
+            endTime.toDate(),
+            new BN(stakeAmount),
+            payerNonce,
+            destination]
+        // log.info("ddx add", Debug.pprint(args))
+
+        let unsignedTx = await App.ava.Platform().addDefaultSubnetValidator(
+            App.avaClient.nodeId, 
+            startTime.toDate(), 
+            endTime.toDate(), 
+            new BN(stakeAmount),
+            payerNonce, 
+            destination)
+
+        console.log("signing transaction: ", unsignedTx)
+
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let signedTx = await App.ava.Platform().sign(user.username, user.password, unsignedTx, destination)
+
+        console.log("issuing signed transaction: ", signedTx)
+        
+        let res = await this.issueTx(signedTx)
+        
+    }
+
+    @command(new CommandSpec("getPendingValidators", [new FieldSpec("subnetId", false)], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    async getPendingValidators(subnetId?) {
+        let pv = await App.ava.Platform().getPendingValidators(subnetId)
+        console.log(pv)
+    }
+
+    @command(new CommandSpec("getCurrentValidators", [new FieldSpec("subnetId", false)], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    async getCurrentValidators(subnetId?) {
+        let pv = await App.ava.Platform().getCurrentValidators(subnetId)
+        console.log(pv)
     }
 
 }
