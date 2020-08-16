@@ -45,6 +45,7 @@ export class AvaShell {
             }
             
             let res = await App.commandHandler.handleCommand(cmd)
+            this.updatePrompt()
             // log.info("res", res)
             callback(null, res)
         } catch(error) {
@@ -63,6 +64,12 @@ export class AvaShell {
 
     static updatePrompt() {
         let prompt = "ava"
+        
+        let activeUsername = App.avaClient.keystoreCache.activeUsername
+        if (activeUsername) {
+            prompt = `${activeUsername}@ava`
+        }
+
         if (App.commandHandler.activeContext) {
             prompt = `${prompt} ${App.commandHandler.activeContext}`
         }
@@ -95,8 +102,17 @@ export class AvaShell {
 
                 return [completions, params[0]]
             } else if (params.length == 2) {
-                let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
-                return [completions, params[1]]
+                let commandSpec = App.commandHandler.getCommandSpec(params[0], params[1])
+                // log.info("ddx cs", commandSpec)
+                if (commandSpec) {
+                    console.log("\n")
+                    commandSpec.printUsage()
+                    return [[""], line]
+
+                } else {
+                    let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
+                    return [completions, params[1]]   
+                }                
             }
         } else {
             if (params.length == 1) {

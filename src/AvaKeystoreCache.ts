@@ -30,4 +30,8 @@ export class AvaKeystoreCache {
 
         return out
     }
+
+    hasUser(username:string) {
+        return this.usernameMap[username]
+    }
 }

@@ -103,6 +103,7 @@ export class InfoCommandHandler {
 }
 
 export class KeystoreCommandHandler {
+    @command(new CommandSpec("listUsers", [], "List the names of all users on the node"))
     async listUsers() {
         let usernames = await App.ava.NodeKeys().listUsers()
         if (!usernames || !usernames.length) {
@@ -125,9 +126,34 @@ export class KeystoreCommandHandler {
         log.info(`created user: ${username}`)
     }
     
-    @command(new CommandSpec("setUser", [new FieldSpec("username"), new FieldSpec("password")], "Sets the active user for future avm commands"))
-    async setUser(username:string, password?:string) {
+    @command(new CommandSpec("login", [new FieldSpec("username"), new FieldSpec("password")], "Authenticate with a username and password"))
+    async login(username:string, password:string) {
+        // check if username and password is correct
+        try {
+        let res = await App.ava.AVM().listAddresses(username, password)
+        } catch (error) {
+            console.error("Incorrect username/password")
+            return
+        }
+
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
+
+        if (!App.avaClient.keystoreCache.getActiveUser()) {
+            App.avaClient.keystoreCache.setActiveUser(username)
+        }
+
+        console.log("Login successful")
+    }
+
+    @command(new CommandSpec("setUser", [new FieldSpec("username")], "Sets the active user for future avm commands"))
+    async setActive(username: string) {
+        if (!App.avaClient.keystoreCache.hasUser(username)) {
+            console.error("Please authenticate with this user first using command: login")
+            return
+        }
+
+        App.avaClient.keystoreCache.setActiveUser(username)
+        console.log("Set active user to: " + username)
     }
 }
 
