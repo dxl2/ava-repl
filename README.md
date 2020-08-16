@@ -1,3 +1,72 @@
+## AVA Getting Started Guide with REPL
+Here's how to use ava-repl to easily get through the [Ava Getting Started Guide](https://docs.avax.network/v1.0/en/quickstart/ava-getting-started/). Try tab completion for assistance if you get stuck.
+
+First create a user.
+```
+keystore createUser test3 TestingAva123*
+```
+
+This caches the user's credential and sets it as active for future commands so you don't have to keep retyping the same username and password. Use `setUser` to switch users. Now create an address
+```
+avm createAddress
+```
+
+Copy the output address (in our case X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP) and fund it with the [Testnet faucet](https://faucet.avax.network/)
+
+Check balance on address:
+```
+avm getBalance X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP
+``` 
+Let's send some AVA. Remember to use tab completion for help if you're not sure about the arguments
+```
+avm send X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP X-FxgGhoAwg3dPTPhHEmjgi27ZPmvc8jQmj 10000
+```
+AVA-repl automatically tracks and polls the status of any transactions you've submitted. It lets you know if the transaction is accepted. To see status of recently your recent transactions:
+```
+avm listTxs
+```
+
+Let's create a P-Chain account to prepare for staking.
+```
+platform createAccount
+```
+Now we transfer some AVA from X-Chain to our newly created P-Chain account FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh
+
+To start we first export from X-Chain
+```
+avm exportAva FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh 10000
+```
+
+Wait a few seconds until the ava-repl reports back Transaction accepted. Then we import to P-Chain
+```
+platform importAva FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh
+```
+
+Note you do not have to specify a payer nonce. It's optional. ava-repl will find the next nonce if needed. 
+
+importAva also issues the transaction automatically. So it combines platform.importAva and platform.issueTx into 1 step for your convenience.
+
+Now we can check the balance of our platform accounts:
+```
+platform listAccounts
+```
+
+Next we add our node to the default subnet. 
+```
+platform addDefaultSubnetValidator FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh 10000 1
+```
+
+Again, this is combining the few steps in the Getting Started guide into one: It generates the unsigned transaction, signs it, and issues it. payerNonce is set automatically and nodeId is set to the current node.
+
+We can check pending and current validators as follows:
+```
+platform getPendingValidators
+```
+
+```
+platform getCurrentValidators
+```
+
 # AVA REPL Shell
 
 A full featured REPL shell and CLI for Ava. This tool can be used in either REPL mode or standalone mode. 
@@ -6,7 +75,7 @@ It supports tab completion, context switching, Keystore credentials caching, tra
 ## Build Instructions
 ```
 npm install
-./node_modules/typescript/bin/tsc build
+./node_modules/typescript/bin/tsc
 node build/AvaShell.js
 ```
 
@@ -46,3 +115,17 @@ Keystore credential can also be set as environment variables `AVA_KEYSTORE_USERN
 ## CLI Mode Usage
 To invoke in CLI mode, simply pass the along the commandline. Make sure to set the environment variables for the Keystore user.
 `build/AvaShell.js avm checkTx <tx>`
+
+## AVA Getting Started Guide with REPL
+Here's how to use ava-repl to easily get through the Ava Getting Started Guide. Try tab completion for assistance if you get stuck.
+
+First create a user.
+```
+keystore createUser test3 TestingAva123*
+```
+
+This caches the user's credential and sets it as active for future commands. Now create an address
+```
+avm createAddress
+
+```
