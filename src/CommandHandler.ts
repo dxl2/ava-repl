@@ -102,6 +102,14 @@ export class InfoCommandHandler {
     }
 }
 
+export class HealthCommandHandler {
+    @command(new CommandSpec("getLiveness", [], "Check health of node"))
+    async getLiveness() {
+        let resp = await App.ava.Health().getLiveness()
+        console.log(Debug.pprint(resp))
+    }
+}
+
 export class KeystoreCommandHandler {
     @command(new CommandSpec("listUsers", [], "List the names of all users on the node"))
     async listUsers() {
@@ -459,7 +467,8 @@ export enum CommandContext {
     Info = "info",
     Keystore = "keystore",
     AVM = "avm",
-    Platform = "platform"
+    Platform = "platform",
+    Health = "health"
 }
 
 const META_COMMANDS = [
@@ -472,6 +481,7 @@ export class CommandHandler {
     keystoreHandler: KeystoreCommandHandler
     avmHandler: AvmCommandHandler
     platformHandler: PlatformCommandHandler
+    healthHandler: HealthCommandHandler
     handlerMap
     activeContext: string
     commandSpecMap:{[key:string]: CommandSpec} = {}
@@ -484,11 +494,13 @@ export class CommandHandler {
         this.keystoreHandler = new KeystoreCommandHandler()
         this.avmHandler = new AvmCommandHandler()
         this.platformHandler = new PlatformCommandHandler()
+        this.healthHandler = new HealthCommandHandler()
 
-        this.addCommandSpec(this.keystoreHandler, CommandContext.Keystore)        
-        this.addCommandSpec(this.infoHandler, CommandContext.Info)        
-        this.addCommandSpec(this.avmHandler, CommandContext.AVM)        
-        this.addCommandSpec(this.platformHandler, CommandContext.Platform)        
+        this.addCommandSpec(this.keystoreHandler, CommandContext.Keystore)
+        this.addCommandSpec(this.infoHandler, CommandContext.Info)
+        this.addCommandSpec(this.avmHandler, CommandContext.AVM)
+        this.addCommandSpec(this.platformHandler, CommandContext.Platform)
+        this.addCommandSpec(this.healthHandler, CommandContext.Health)
 
         // log.info("commandSpecMap", this.commandSpecMap)
 
@@ -496,7 +508,8 @@ export class CommandHandler {
             "info": this.infoHandler,
             "keystore": this.keystoreHandler,
             "avm": this.avmHandler,
-            "platform": this.platformHandler
+            "platform": this.platformHandler,
+            "health": this.healthHandler
         }
 
         for (let context in this.handlerMap) {
