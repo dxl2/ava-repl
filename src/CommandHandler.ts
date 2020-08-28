@@ -96,9 +96,24 @@ export class CommandError extends Error {
 
 
 export class InfoCommandHandler {
+    @command(new CommandSpec("nodeId", [], "Show current node ID"))
     nodeId() {
         console.log(App.avaClient.nodeId)
         return App.avaClient.nodeId
+    }
+
+    @command(new CommandSpec("nodeVersion", [], "Show current node version"))
+    async nodeVersion() {
+        let ver = await App.ava.Info().getNodeVersion()
+        console.log(ver)
+        return ver
+    }
+
+    @command(new CommandSpec("peers", [], "Show the peers connected to the node"))
+    async peers() {
+        let peers = await App.ava.Info().peers()
+        console.log(Debug.pprint(peers))
+        return peers
     }
 }
 
