@@ -154,7 +154,7 @@ export class KeystoreCommandHandler {
     async login(username:string, password:string) {
         // check if username and password is correct
         try {
-        let res = await App.ava.AVM().listAddresses(username, password)
+        let res = await App.ava.XChain().listAddresses(username, password)
         } catch (error) {
             console.error("Incorrect username/password")
             return
@@ -191,51 +191,56 @@ export class PlatformCommandHandler {
         return user
     }
 
-    async createAccount() {
+    async createAddress() {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
         
-        let res = await App.ava.Platform().createAccount(user.username, user.password)
+        let res = await App.ava.PChain().createAddress(user.username, user.password)
         log.info(`created`, res)
         console.log("Created platform account: " + res)
     }
 
-    async listAccounts() {
+    async listAddresses() {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let res = await App.ava.Platform().listAccounts(user.username, user.password)
+        let res = await App.ava.PChain().listAddresses(user.username, user.password)
         if (!res || !res.length) {
             console.log("No accounts found")
             return
         }
 
-        console.log(OutputPrinter.pprint(res))
+        if (res && res.length) {
+            console.log(`${res.length} P-Chain addresses`)
+            for (let addr of res) {
+                console.log(addr)
+            }
+        } else {
+            console.log("No P-Chain addresses for current user")
+        }
+
+        // console.log(OutputPrinter.pprint(res))
     }
 
     @command(new CommandSpec([new FieldSpec("address")], "Fetch P-Chain account by address"))
-    async getAccount(address:string) {
-        let res = await App.ava.Platform().getAccount(address)
+    async getBalance(address:string) {
+        let res = await App.ava.PChain().getBalance(address)
         console.log(OutputPrinter.pprint(res))
         return res
     }
 
-    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("payerNonce", false)], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
-    async importAva(dest: string, payerNonce:number) {
+    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", false)], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
+    async importAVAX(dest: string, sourceChain="X") {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        if (!payerNonce) {
-            payerNonce = await this.getNextPayerNonce(dest)
-        }
-
-        let res = await App.ava.Platform().importAVA(user.username, user.password, dest, payerNonce)
+        let res = await App.ava.PChain().importAVAX(user.username, user.password, dest, sourceChain)
 
         console.log("Issuing Transaction...")
         console.log(res)
@@ -244,17 +249,17 @@ export class PlatformCommandHandler {
         
     }
 
-    async getNextPayerNonce(dest:string) {
-        let account = await this.getAccount(dest)
-        if (!account) {
-            throw new Error("Cannot find account " + dest)
-        } else {
-            return +account["nonce"] + 1
-        }
-    }
+    // async getNextPayerNonce(dest:string) {
+    //     let account = await this.getAccount(dest)
+    //     if (!account) {
+    //         throw new Error("Cannot find account " + dest)
+    //     } else {
+    //         return +account["nonce"] + 1
+    //     }
+    // }
 
     @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("x-dest"), new FieldSpec("payerNonce")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
-    async exportAva(dest: string, amount: number, payerNonce:number) {        
+    async exportAVAX(dest: string, amount: number, payerNonce:number) {        
         payerNonce = +payerNonce
         if (isNaN(payerNonce)) {
             console.error("Invalid payer nonce: " + payerNonce)
@@ -267,7 +272,12 @@ export class PlatformCommandHandler {
             dest = dparts[1]
         }
 
-        let res = await App.ava.Platform().exportAVA(amount, dest, payerNonce)
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.PChain().exportAVAX(user.username, user.password, amount, dest)
 
         console.log("Issuing Transaction...")
         console.log(res)
@@ -277,7 +287,7 @@ export class PlatformCommandHandler {
 
     @command(new CommandSpec([new FieldSpec("tx")], "Issue a transaction to the platform chain"))
     async issueTx(tx: string) {
-        let txId = await App.ava.Platform().issueTx(tx)
+        let txId = await App.ava.PChain().issueTx(tx)
         console.log("result txId: " + txId)
     }
 
@@ -288,48 +298,52 @@ export class PlatformCommandHandler {
 
         let endTime = now.clone().add(endTimeDays, "days")
 
-        let payerNonce = await this.getNextPayerNonce(destination)
-
-        let args = [App.avaClient.nodeId,
-            startTime.toDate(),
-            endTime.toDate(),
-            new BN(stakeAmount),
-            payerNonce,
-            destination]
-        // log.info("ddx add", Debug.pprint(args))
-
-        let unsignedTx = await App.ava.Platform().addDefaultSubnetValidator(
-            App.avaClient.nodeId, 
-            startTime.toDate(), 
-            endTime.toDate(), 
-            new BN(stakeAmount),
-            payerNonce, 
-            destination)
-
-        console.log("signing transaction: ", unsignedTx)
+        // let payerNonce = await this.getNextPayerNonce(destination)
 
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let signedTx = await App.ava.Platform().sign(user.username, user.password, unsignedTx, destination)
 
-        console.log("issuing signed transaction: ", signedTx)
+        let args = [App.avaClient.nodeId,
+            startTime.toDate(),
+            endTime.toDate(),
+            new BN(stakeAmount),
+            destination]
+        // log.info("ddx add", Debug.pprint(args))
+
+        let txId = await App.ava.PChain().addValidator(
+            user.username,
+            user.password,
+            App.avaClient.nodeId, 
+            startTime.toDate(), 
+            endTime.toDate(), 
+            new BN(stakeAmount),
+            destination)
         
-        let res = await this.issueTx(signedTx)
+        log.info("transactionId", txId)
+
+        // console.log("signing transaction: ", unsignedTx)
+
+
+        // let signedTx = await App.ava.PChain().sign(user.username, user.password, unsignedTx, destination)
+
+        // console.log("issuing signed transaction: ", signedTx)
+        
+        // let res = await this.issueTx(signedTx)
         
     }
 
     @command(new CommandSpec([new FieldSpec("subnetId", false)], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getPendingValidators(subnetId?) {
-        let pv = await App.ava.Platform().getPendingValidators(subnetId)
+        let pv = await App.ava.PChain().getPendingValidators(subnetId)
         console.log(pv)
     }
 
     @command(new CommandSpec([new FieldSpec("subnetId", false)], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getCurrentValidators(subnetId?) {
-        let pv = await App.ava.Platform().getCurrentValidators(subnetId)
+        let pv = await App.ava.PChain().getCurrentValidators(subnetId)
         console.log(pv)
     }
 
@@ -345,37 +359,38 @@ export class AvmCommandHandler {
         return user
     }
 
-    @command(new CommandSpec([new FieldSpec("dest")], "Finalize a transfer of AVA from the P-Chain to the X-Chain."))
-    async importAva(dest: string) {
+    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain")], "Import AVAX from a source chain."))
+    async importAVAX(dest: string, sourceChain="P") {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let res = await App.ava.AVM().importAVA(user.username, user.password, dest)
+        let res = await App.ava.XChain().importAVAX(user.username, user.password, dest, sourceChain)
         console.log("Submitted transaction: " + res)
         App.pendingTxService.add(res)
     }
     
     @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("amount")], "Send AVA from the X-Chain to an account on the P-Chain."))
-    async exportAva(dest:string, amount:number) {
+    async exportAVAX(dest:string, amount:number) {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let res = await App.ava.AVM().exportAVA(user.username, user.password, dest, amount)
+        let res = await App.ava.XChain().exportAVAX(user.username, user.password, dest, amount)
         console.log("Submitted transaction: " + res)
         App.pendingTxService.add(res)
     }
 
+    @command(new CommandSpec([], "List all X-Chain addresses controlled by the current user"))
     async listAddresses() {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
         
-        let res = await App.ava.AVM().listAddresses(user.username, user.password)
+        let res = await App.ava.XChain().listAddresses(user.username, user.password)
 
         console.log("Addresses for keystore: " + user.username)
         if (!res || !res.length) {
@@ -388,13 +403,14 @@ export class AvmCommandHandler {
         }
     }
 
+    @command(new CommandSpec([], "List balances of all X-Chain addresses controlled by the current user"))
     async listBalances() {
         let user = this._getActiveUser()
         if (!user) {
             return
         }
         
-        let res = await App.ava.AVM().listAddresses(user.username, user.password)
+        let res = await App.ava.XChain().listAddresses(user.username, user.password)
 
         console.log("Addresses for keystore: " + user.username)
         if (!res || !res.length) {
@@ -407,6 +423,7 @@ export class AvmCommandHandler {
         }
     }
 
+    @command(new CommandSpec([], "Create a new X-Chain addresses controlled by the current user"))
     async createAddress() {
         let user = this._getActiveUser()
         if (!user) {
@@ -414,13 +431,13 @@ export class AvmCommandHandler {
         }
 
         // log.info("ddx active", user)        
-        let res = await App.ava.AVM().createAddress(user.username, user.password)
+        let res = await App.ava.XChain().createAddress(user.username, user.password)
         console.log("Created Address:")
         console.log(res)
     }
 
     // async getBalance() {
-    //     let res = await App.ava.AVM().getAllBalances()
+    //     let res = await App.ava.XChain().getAllBalances()
     //     log.info("res", res)
     // }
 
@@ -430,28 +447,28 @@ export class AvmCommandHandler {
     // }
 
     @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("asset", false)], "Get the balance of an asset in an account"))
-    async getBalance(address:string, asset:string="AVA") {
-        let bal = await App.ava.AVM().getBalance(address, asset) as BN
-        console.log(`Balance on ${address} for asset ${asset}: ` + bal.toString(10))
+    async getBalance(address:string, asset:string="AVAX") {
+        let bal = await App.ava.XChain().getBalance(address, asset) as BN
+        console.log(`Balance on ${address} for asset ${asset}:`, Debug.pprint(bal))
         // console.log(OutputPrinter.pprint(bal))
     }
 
     @command(new CommandSpec([new FieldSpec("address")], "Get the balance of all assets in an account"))
     async getAllBalances(address) {
-        let bal = await App.ava.AVM().getAllBalances(address)
+        let bal = await App.ava.XChain().getAllBalances(address)
         console.log(`Balance on ${address} for all assets`)
         console.log(OutputPrinter.pprint(bal))
     }
 
     @command(new CommandSpec([new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", false)], "Sends asset from an address managed by this node's keystore to a destination address"))
-    async send(fromAddress:string, toAddress:string, amount:number, asset="AVA") {
+    async send(fromAddress:string, toAddress:string, amount:number, asset="AVAX") {
         log.info("ddx", this)
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let res = await App.ava.AVM().send(user.username, user.password, asset, amount, toAddress, [fromAddress])
+        let res = await App.ava.XChain().send(user.username, user.password, asset, amount, toAddress, [fromAddress])
         // console.log(`Balance on ${address} for all assets`)
         console.log("submitted transaction...")
         console.log(res)
@@ -459,8 +476,8 @@ export class AvmCommandHandler {
     }
 
     @command(new CommandSpec([new FieldSpec("txId")], "Check the status of a transaction id"))
-    async checkTx(txId:string) {
-        let res = await App.ava.AVM().getTxStatus(txId)
+    async getTxStatus(txId:string) {
+        let res = await App.ava.XChain().getTxStatus(txId)
         console.log("Transaction state: " + res)
     }
 

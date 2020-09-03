@@ -49,7 +49,7 @@ export class PendingTxService extends PollableService {
                 continue
             }
 
-            tx.state = await App.ava.AVM().getTxStatus(tx.id)
+            tx.state = await App.ava.XChain().getTxStatus(tx.id)
 
             if (tx.state == PendingTxState.Accepted) {
                 if (this.cb) {
