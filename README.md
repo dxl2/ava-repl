@@ -15,45 +15,45 @@ Copy the output address (in our case X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP) and fu
 
 Check balance on address:
 ```
-avm getBalance X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP
+avm getBalance X-everest1yj5p4akajgxfglukjh4tj9e6n25hmemycfmc4g
 ``` 
 Let's send some AVA. Remember to use tab completion for help if you're not sure about the arguments
 ```
-avm send X-CdLNNtfW1CfdJcit1SR53ch1B179mnEFP X-FxgGhoAwg3dPTPhHEmjgi27ZPmvc8jQmj 10000
+avm send X-everest16taysp0xh3twp3dj9q04484enz0dwrnvw77p5m X-everest1yj5p4akajgxfglukjh4tj9e6n25hmemycfmc4g 10000
 ```
 AVA-repl automatically tracks and polls the status of any transactions you've submitted. It lets you know if the transaction is accepted. To see status of recently your recent transactions:
 ```
 avm listTxs
 ```
 
-Let's create a P-Chain account to prepare for staking.
+Let's create a P-Chain address to prepare for staking.
 ```
-platform createAccount
+platform createAddress
 ```
-Now we transfer some AVA from X-Chain to our newly created P-Chain account FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh
+Now we transfer some AVA from X-Chain to our newly created P-Chain account P-everest1f40kgwrmuj6td8dpfqp8vl8vcu9fyphugy3a3f
 
 To start we first export from X-Chain
 ```
-avm exportAva FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh 10000
+avm exportAVAX P-everest1f40kgwrmuj6td8dpfqp8vl8vcu9fyphugy3a3f 20000
 ```
 
 Wait a few seconds until the ava-repl reports back Transaction accepted. Then we import to P-Chain
 ```
-platform importAva FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh
+platform importAVAX P-everest1f40kgwrmuj6td8dpfqp8vl8vcu9fyphugy3a3f
 ```
 
 Note you do not have to specify a payer nonce. It's optional. ava-repl will find the next nonce if needed. 
 
 importAva also issues the transaction automatically. So it combines platform.importAva and platform.issueTx into 1 step for your convenience.
 
-Now we can check the balance of our platform accounts:
+Now we can check the balance of our platform address:
 ```
-platform listAccounts
+platform getBalance P-everest1f40kgwrmuj6td8dpfqp8vl8vcu9fyphugy3a3f
 ```
 
 Next we add our node to the default subnet. 
 ```
-platform addDefaultSubnetValidator FBjLWXpQbjhVKsjLHiEXf1h7t4GkPVurh 10000 1
+platform addValidator P-everest1f40kgwrmuj6td8dpfqp8vl8vcu9fyphugy3a3f 10000 1
 ```
 
 Again, this is combining the few steps in the Getting Started guide into one: It generates the unsigned transaction, signs it, and issues it. payerNonce is set automatically and nodeId is set to the current node.

@@ -147,7 +147,7 @@ export class KeystoreCommandHandler {
     async createUser(username, password) {
         let user = await App.ava.NodeKeys().createUser(username, password)
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password))
-        log.info(`created user: ${username}`)
+        console.log(`Created user: ${username}`)
     }
     
     @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password")], "Authenticate with a username and password"))
@@ -198,7 +198,7 @@ export class PlatformCommandHandler {
         }
         
         let res = await App.ava.PChain().createAddress(user.username, user.password)
-        log.info(`created`, res)
+        // log.info(`created`, res)
         console.log("Created platform account: " + res)
     }
 
@@ -292,7 +292,7 @@ export class PlatformCommandHandler {
     }
 
     @command(new CommandSpec([new FieldSpec("destination"), new FieldSpec("stakeAmount"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
-    async addDefaultSubnetValidator(destination: string, stakeAmount:number, endTimeDays:number) {
+    async addValidator(destination: string, stakeAmount:number, endTimeDays:number) {
         let now = moment().seconds(0).milliseconds(0)
         let startTime = now.clone().add(1, "minute")
 
@@ -306,11 +306,12 @@ export class PlatformCommandHandler {
         }
 
 
-        let args = [App.avaClient.nodeId,
-            startTime.toDate(),
-            endTime.toDate(),
-            new BN(stakeAmount),
-            destination]
+        // let args = [App.avaClient.nodeId,
+        //     startTime.toDate(),
+        //     endTime.toDate(),
+        //     new BN(stakeAmount),
+        //     destination,
+        //     new BN(10)]
         // log.info("ddx add", Debug.pprint(args))
 
         let txId = await App.ava.PChain().addValidator(
@@ -320,7 +321,8 @@ export class PlatformCommandHandler {
             startTime.toDate(), 
             endTime.toDate(), 
             new BN(stakeAmount),
-            destination)
+            destination,
+            new BN(10))
         
         log.info("transactionId", txId)
 
