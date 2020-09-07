@@ -226,6 +226,27 @@ export class PlatformCommandHandler {
         // console.log(OutputPrinter.pprint(res))
     }
 
+    @command(new CommandSpec([], "List balance for all your P-Chain accounts"))
+    async listBalances() {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let addresses = await App.ava.PChain().listAddresses(user.username, user.password)
+        if (!addresses || !addresses.length) {
+            console.log("No accounts found")
+            return
+        }
+
+        for (let address of addresses) {
+            let res = await App.ava.PChain().getBalance(address)
+            console.log(`Address: ${address}`)
+            console.log(OutputPrinter.pprint(res))
+            return res
+        }
+    }
+
     @command(new CommandSpec([new FieldSpec("address")], "Fetch P-Chain account by address"))
     async getBalance(address:string) {
         let res = await App.ava.PChain().getBalance(address)
