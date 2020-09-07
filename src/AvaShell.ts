@@ -85,6 +85,10 @@ export class AvaShell {
         return output;
     }
 
+    static appendSeparator(items) {
+        return items.map(x => `${x} `)
+    }
+
     static completer(line) {        
         let params = StringUtility.splitTokens(line)
         if (!params.length) {            
@@ -100,7 +104,7 @@ export class AvaShell {
                     return [ App.commandHandler.getContextCommands(params[0]), params[0] ]
                 }
 
-                return [completions, params[0]]
+                return [this.appendSeparator(completions), params[0]]
             } else if (params.length == 2) {
                 let commandSpec = App.commandHandler.getCommandSpec(params[0], params[1])
                 // log.info("ddx cs", commandSpec)
@@ -111,13 +115,13 @@ export class AvaShell {
 
                 } else {
                     let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
-                    return [completions, params[1]]   
+                    return [this.appendSeparator(completions), params[1]]
                 }                
             }
         } else {
             if (params.length == 1) {
                 let completions = this.getCompletions(params[0], App.commandHandler.getContextCommands(App.commandHandler.activeContext))
-                return [completions, params[0]]
+                return [this.appendSeparator(completions), params[0]]
             } else {
                 return [[], ""]
             }
