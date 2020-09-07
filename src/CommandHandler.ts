@@ -1,5 +1,5 @@
 import { App } from "./App";
-import { AvaKeystoreUser } from "./AvaClient";
+import { AvaKeystoreUser, AvaClient } from "./AvaClient";
 import { log } from "./AppLog";
 import { Debug } from "./Debug";
 import { OutputPrinter } from "./OutputPrinter";
@@ -387,6 +387,13 @@ export class AvmCommandHandler {
         return user
     }
 
+    @command(new CommandSpec([new FieldSpec("assetId")], "Get an asset's name and symbol from asset id"))
+    async getAssetDescription(assetId: string) {
+        let res = await App.ava.XChain().getAssetDescription(assetId)
+        console.log(`name: ${res.name}`)
+        console.log(`description: ${res.symbol}`)
+        // console.log(res)
+    }
 
     @command(new CommandSpec([new FieldSpec("name"), new FieldSpec("symbol"), new FieldSpec("initialHolderAddress"), new FieldSpec("initialHolderAmount") ], "Create a fixed cap asset with default denomination."))
     async createFixedCapAsset(name: string, symbol: string, ...args) {
@@ -465,7 +472,7 @@ export class AvmCommandHandler {
         
         let res = await App.ava.XChain().listAddresses(user.username, user.password)
 
-        console.log("Addresses for keystore: " + user.username)
+        // console.log("Addresses for keystore: " + user.username)
         if (!res || !res.length) {
             console.log("None found")
             return
@@ -473,6 +480,7 @@ export class AvmCommandHandler {
         
         for (let address of res) {
             await this.getAllBalances(address)
+            console.log()
         }
     }
 
@@ -509,7 +517,15 @@ export class AvmCommandHandler {
     @command(new CommandSpec([new FieldSpec("address")], "Get the balance of all assets in an account"))
     async getAllBalances(address) {
         let bal = await App.ava.XChain().getAllBalances(address)
-        console.log(`Balance on ${address} for all assets`)
+
+        // populate asset names
+        for (let entry of bal) {
+            if (entry["asset"] != AvaClient.NATIVE_ASSET) {
+                entry["name"] = await App.avaClient.getAssetName(entry["asset"])
+            }
+        }
+
+        console.log(`Address ${address}`)
         console.log(OutputPrinter.pprint(bal))
     }
 

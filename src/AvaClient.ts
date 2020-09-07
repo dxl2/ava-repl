@@ -8,6 +8,7 @@ export class AvaKeystoreUser {
 
 
 export class AvaClient {
+    static NATIVE_ASSET = "AVAX"
     nodeId:string
     keystoreCache = new AvaKeystoreCache()
     activeAddress: string
@@ -21,5 +22,15 @@ export class AvaClient {
 
     setActiveAddress(addr: string) {
         this.activeAddress = addr
+    }
+
+    async getAssetName(assetId:string) {
+        try {
+            let res = await this.ava.XChain().getAssetDescription(assetId)
+            return res.name
+        } catch (error) {
+            log.error(error)
+            return null
+        }
     }
 }
