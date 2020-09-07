@@ -1,6 +1,6 @@
 export class StringUtility {
-    static splitTokens(s:string) {
-        let parts = s.trim().split(/\s+/)
+    static splitTokens(s: string, sep = /\s+/) {
+        let parts = s.trim().split(sep)
         let out = []
 
         // Remove quotes in case they're pasted in from JSON output

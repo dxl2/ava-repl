@@ -419,6 +419,45 @@ export class AvmCommandHandler {
         App.pendingTxService.add(res)
     }
 
+    @command(new CommandSpec([new FieldSpec("name"), new FieldSpec("symbol"), new FieldSpec("minterAddresses"), new FieldSpec("minterThreshold")], "Create a variable set asset. For a minter set, separate multiple minter addresses with comma."))
+    async createVariableCapAsset(name: string, symbol: string, ...args) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let minterSets = []
+
+        if (0 != args.length % 2) {
+            console.error("Unexpected number of minterset arguments")
+            return
+        }
+
+        while (args.length > 0) {
+            let addrRaw = args.shift()
+            let addresses = StringUtility.splitTokens(addrRaw)
+            let threshold = args.shift()
+            minterSets.push({ minters: addresses, threshold: threshold })
+        }
+
+        let res = await App.ava.XChain().createVariableCapAsset(user.username, user.password, name, symbol, 0, minterSets)
+        console.log("Created Asset ID:", res)
+        // App.pendingTxService.add(res)
+    }
+
+    @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("assetId"), new FieldSpec("toAddress"), new FieldSpec("minters")], "Mint more of a variable supply asset. This creates an unsigned transaction."))
+    async mint(amount: number, assetId:string, toAddress:string, ...minters) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.XChain().mint(user.username, user.password, amount, assetId, toAddress, minters)
+        console.log("Submitted transaction: " + res)
+        App.pendingTxService.add(res)
+    }
+
+
     @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", "P")], "Import AVAX from a source chain."))
     async importAVAX(dest: string, sourceChain="P") {
         let user = this._getActiveUser()
