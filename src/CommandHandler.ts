@@ -10,15 +10,15 @@ import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
 
 class FieldSpec {
-    constructor(public name:string, public isRequired=true) {
+    constructor(public name:string, public defaultValue=null) {
 
     }
 
     get toHelpString() {
-        if (this.isRequired) {
+        if (!this.defaultValue) {
             return `<${this.name}>`
         } else {
-            return `[${this.name}]`
+            return `[${this.name}=${this.defaultValue}]`
         }
     }
 }
@@ -30,7 +30,7 @@ class CommandSpec {
 
     constructor(public fields: FieldSpec[], public description:string) {
         for (let field of fields) {
-            if (field.isRequired) {
+            if (!field.defaultValue) {
                 this.countRequiredFields++
             }
         }
@@ -254,7 +254,7 @@ export class PlatformCommandHandler {
         return res
     }
 
-    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", false)], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
+    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", "X")], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
     async importAVAX(dest: string, sourceChain="X") {
         let user = this._getActiveUser()
         if (!user) {
@@ -279,26 +279,21 @@ export class PlatformCommandHandler {
     //     }
     // }
 
-    @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("x-dest"), new FieldSpec("payerNonce")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
-    async exportAVAX(dest: string, amount: number, payerNonce:number) {        
-        payerNonce = +payerNonce
-        if (isNaN(payerNonce)) {
-            console.error("Invalid payer nonce: " + payerNonce)
-            return
-        }
-
+    @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("x-dest")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
+    async exportAVAX(amount: number, dest: string) {
         // remove any prefix X-
-        let dparts = dest.split("-")
-        if (dparts.length > 1) {
-            dest = dparts[1]
-        }
+        // let dparts = dest.split("-")
+        // if (dparts.length > 1) {
+        //     dest = dparts[1]
+        // }
 
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        let res = await App.ava.PChain().exportAVAX(user.username, user.password, amount, dest)
+        // log.info("ddx export", amount, dest)
+        let res = await App.ava.PChain().exportAVAX(user.username, user.password, new BN(amount), dest)
 
         console.log("Issuing Transaction...")
         console.log(res)
@@ -358,14 +353,22 @@ export class PlatformCommandHandler {
         
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetId", false)], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getPendingValidators(subnetId?) {
+        if (subnetId == "default") {
+            subnetId = null
+        }
+
         let pv = await App.ava.PChain().getPendingValidators(subnetId)
         console.log(pv)
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetId", false)], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getCurrentValidators(subnetId?) {
+        if (subnetId == "default") {
+            subnetId = null
+        }
+
         let pv = await App.ava.PChain().getCurrentValidators(subnetId)
         console.log(pv)
     }
@@ -382,7 +385,7 @@ export class AvmCommandHandler {
         return user
     }
 
-    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain")], "Import AVAX from a source chain."))
+    @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", "P")], "Import AVAX from a source chain."))
     async importAVAX(dest: string, sourceChain="P") {
         let user = this._getActiveUser()
         if (!user) {
@@ -469,7 +472,7 @@ export class AvmCommandHandler {
     //     App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
     // }
 
-    @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("asset", false)], "Get the balance of an asset in an account"))
+    @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("asset", "AVAX")], "Get the balance of an asset in an account"))
     async getBalance(address:string, asset:string="AVAX") {
         let bal = await App.ava.XChain().getBalance(address, asset) as BN
         console.log(`Balance on ${address} for asset ${asset}:`, Debug.pprint(bal))
@@ -483,9 +486,9 @@ export class AvmCommandHandler {
         console.log(OutputPrinter.pprint(bal))
     }
 
-    @command(new CommandSpec([new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", false)], "Sends asset from an address managed by this node's keystore to a destination address"))
+    @command(new CommandSpec([new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", "AVAX")], "Sends asset from an address managed by this node's keystore to a destination address"))
     async send(fromAddress:string, toAddress:string, amount:number, asset="AVAX") {
-        log.info("ddx", this)
+        // log.info("ddx", this)
         let user = this._getActiveUser()
         if (!user) {
             return
