@@ -37,7 +37,7 @@ class CommandSpec {
     }
 
     validateInput(...params) {
-        if (params.length != this.countRequiredFields) {
+        if (params.length < this.countRequiredFields) {
             return false
         }
 
@@ -191,6 +191,7 @@ export class PlatformCommandHandler {
         return user
     }
 
+    @command(new CommandSpec([], "Create a new P-Chain address"))
     async createAddress() {
         let user = this._getActiveUser()
         if (!user) {
@@ -202,6 +203,7 @@ export class PlatformCommandHandler {
         console.log("Created platform account: " + res)
     }
 
+    @command(new CommandSpec([], "Show all P-Chain addresses for current user"))
     async listAddresses() {
         let user = this._getActiveUser()
         if (!user) {
@@ -383,6 +385,31 @@ export class AvmCommandHandler {
         }
 
         return user
+    }
+
+
+    @command(new CommandSpec([new FieldSpec("name"), new FieldSpec("symbol"), new FieldSpec("initialHolderAddress"), new FieldSpec("initialHolderAmount") ], "Create a fixed cap asset with default denomination."))
+    async createFixedCapAsset(name: string, symbol: string, ...args) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let holderInfos = []
+
+        if (0 != args.length % 2) {
+            console.error("Unexpected number of holder arguments")
+            return
+        }
+
+        while (args.length > 0) {
+            let addr = args.shift()
+            let amt = args.shift()
+            holderInfos.push({address: addr, amount: amt})
+        }
+
+        let res = await App.ava.XChain().createFixedCapAsset(user.username, user.password, name, symbol, 0, holderInfos)
+        App.pendingTxService.add(res)
     }
 
     @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", "P")], "Import AVAX from a source chain."))
@@ -627,14 +654,21 @@ export class CommandHandler {
         console.log("-------------------")
         console.log("SUPPORTED COMMANDS:")
         console.log("-------------------")
-        for (let context in this.contextMethodMap) {
+
+        let contexts = Object.keys(this.contextMethodMap)
+        contexts.sort()
+
+        for (let context of contexts) {
             if (targetContext && context != targetContext) {
                 continue
             } else {
                 console.log(context)
             }
             
-            for (let method of this.contextMethodMap[context]) {
+            let methods = this.contextMethodMap[context].slice()
+            methods.sort()
+
+            for (let method of methods) {
                 let commandSpec = this.getCommandSpec(context, method)
                 if (commandSpec) {
                     commandSpec.printUsage("    ")
