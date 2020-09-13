@@ -95,7 +95,7 @@ export class AvaShell {
             return [params[0], App.commandHandler.getTopLevelCommands()]
         }
 
-        // log.info("in completer", params, params[0])
+        log.info("in completer", params, params[0])
         if (!App.commandHandler.activeContext) {
             if (params.length == 1) {
                 let completions = this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())
@@ -105,7 +105,7 @@ export class AvaShell {
                 }
 
                 return [this.appendSeparator(completions), params[0]]
-            } else if (params.length == 2) {
+            } else {
                 let commandSpec = App.commandHandler.getCommandSpec(params[0], params[1])
                 // log.info("ddx cs", commandSpec)
                 if (commandSpec) {
