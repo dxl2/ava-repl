@@ -299,6 +299,13 @@ export class PlatformCommandHandler {
         return res
     }
 
+    @command(new CommandSpec([new FieldSpec("txId")], "Check the status of a transaction id"))
+    async getTxStatus(txId: string) {
+        let res = await App.ava.PChain().getTxStatus(txId)
+        console.log("Transaction status: ", res)
+    }
+
+
     @command(new CommandSpec([new FieldSpec("dest"), new FieldSpec("sourceChain", "X")], "Finalize a transfer of AVA from the X-Chain to the P-Chain."))
     async importAVAX(dest: string, sourceChain="X") {
         let user = this._getActiveUser()
@@ -386,16 +393,29 @@ export class PlatformCommandHandler {
             new BN(10))
         
         log.info("transactionId", txId)
+    }
 
-        // console.log("signing transaction: ", unsignedTx)
+    @command(new CommandSpec([new FieldSpec("subnetId"), new FieldSpec("weight"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
+    async addSubnetValidator(subnetId:string, weight: number, endTimeDays: number) {
+        let now = moment().seconds(0).milliseconds(0)
+        let startTime = now.clone().add(1, "minute")
+        let endTime = now.clone().add(endTimeDays, "days")
 
-
-        // let signedTx = await App.ava.PChain().sign(user.username, user.password, unsignedTx, destination)
-
-        // console.log("issuing signed transaction: ", signedTx)
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
         
-        // let res = await this.issueTx(signedTx)
-        
+        let txId = await App.ava.PChain().addSubnetValidator(
+            user.username,
+            user.password,
+            App.avaClient.nodeId,
+            subnetId,
+            startTime.toDate(),
+            endTime.toDate(),
+            weight)
+
+        log.info("transactionId", txId)
     }
 
     @command(new CommandSpec([new FieldSpec("subnetId", "default")], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
