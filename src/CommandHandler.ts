@@ -103,6 +103,27 @@ export class InfoCommandHandler {
         return App.avaClient.nodeId
     }
 
+    @command(new CommandSpec([], "Get transaction fee of the network"))
+    async txFee() {
+        let res = await App.ava.Info().getTxFee()
+        console.log(res.toString(10))
+        return res
+    }
+
+    @command(new CommandSpec([], "Get the ID of the network this node is participating in."))
+    async networkId() {
+        let res = await App.ava.Info().getNetworkID()
+        console.log(res)
+        return res
+    }
+
+    @command(new CommandSpec([], "Get the name of the network this node is participating in."))
+    async networkName() {
+        let res = await App.ava.Info().getNetworkID()
+        console.log(res)
+        return res
+    }
+
     @command(new CommandSpec([], "Show current node version"))
     async nodeVersion() {
         let ver = await App.ava.Info().getNodeVersion()
