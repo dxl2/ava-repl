@@ -405,7 +405,7 @@ export class PlatformCommandHandler {
         if (!user) {
             return
         }
-        
+
         let txId = await App.ava.PChain().addSubnetValidator(
             user.username,
             user.password,
@@ -436,6 +436,28 @@ export class PlatformCommandHandler {
 
         let pv = await App.ava.PChain().getCurrentValidators(subnetId)
         console.log(pv)
+    }
+
+    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "Check if current node is a validator for a subnet, or the Default Subnet if no subnetId is specified"))
+    async isCurrentValidator(subnetId?) {
+        if (subnetId == "default") {
+            subnetId = null
+        }
+
+        let found = false
+        let nodeId = App.avaClient.nodeId
+        let res = await App.ava.PChain().getCurrentValidators(subnetId)
+        for (let valInfo of res["validators"]) {
+            if (valInfo["nodeID"] == nodeId) {
+                console.log("Current node is a validator")
+                console.log(OutputPrinter.pprint(valInfo))
+                found = true
+            }
+        }
+
+        if (!found) {
+            console.log("Current node is not a validator")
+        }
     }
 
 }
