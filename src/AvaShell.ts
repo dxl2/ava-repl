@@ -95,7 +95,7 @@ export class AvaShell {
             return [params[0], App.commandHandler.getTopLevelCommands()]
         }
 
-        log.info("in completer", params, params[0])
+        // log.info("in completer", params, params[0])
         if (!App.commandHandler.activeContext) {
             if (params.length == 1) {
                 let completions = this.getCompletions(params[0], App.commandHandler.getTopLevelCommands())

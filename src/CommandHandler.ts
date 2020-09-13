@@ -134,7 +134,7 @@ export class InfoCommandHandler {
     @command(new CommandSpec([], "Show the peers connected to the node"))
     async peers() {
         let peers = await App.ava.Info().peers()
-        console.log(Debug.pprint(peers))
+        console.log(OutputPrinter.pprint(peers))
         return peers
     }
 }
@@ -143,7 +143,7 @@ export class HealthCommandHandler {
     @command(new CommandSpec([], "Check health of node"))
     async getLiveness() {
         let resp = await App.ava.Health().getLiveness()
-        console.log(Debug.pprint(resp))
+        console.log(OutputPrinter.pprint(resp))
     }
 }
 
@@ -266,13 +266,35 @@ export class PlatformCommandHandler {
             let res = await App.ava.PChain().getBalance(address)
             console.log(`Address: ${address}`)
             console.log(OutputPrinter.pprint(res))
-            return res
         }
     }
 
     @command(new CommandSpec([new FieldSpec("address")], "Fetch P-Chain account by address"))
     async getBalance(address:string) {
         let res = await App.ava.PChain().getBalance(address)
+        console.log(OutputPrinter.pprint(res))
+        return res
+    }
+
+    @command(new CommandSpec([new FieldSpec("threshold"), new FieldSpec("controlKeys...")], "Create a new Subnet. The Subnet’s ID is the same as this transaction’s ID."))
+    async createSubnet(threshold: number, ...controlKeys) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.PChain().createSubnet(user.username, user.password, controlKeys, threshold)
+        console.log("Created subnet id", res)
+        return res
+    }
+
+    @command(new CommandSpec([new FieldSpec("subnetIds...")], "Get info about specified subnets. If no id specified, get info on all subnets"))
+    async getSubnets(...subnetIds) {
+        if (!subnetIds.length) {
+            subnetIds = null
+        }
+
+        let res = await App.ava.PChain().getSubnets(subnetIds)
         console.log(OutputPrinter.pprint(res))
         return res
     }
@@ -570,7 +592,7 @@ export class AvmCommandHandler {
     @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("asset", "AVAX")], "Get the balance of an asset in an account"))
     async getBalance(address:string, asset:string="AVAX") {
         let bal = await App.ava.XChain().getBalance(address, asset) as BN
-        console.log(`Balance on ${address} for asset ${asset}:`, Debug.pprint(bal))
+        console.log(`Balance on ${address} for asset ${asset}:`, OutputPrinter.pprint(bal))
         // console.log(OutputPrinter.pprint(bal))
     }
 
