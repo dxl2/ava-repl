@@ -18,7 +18,7 @@ export class AvaShell {
         })
     }
 
-    static async evalHandler(cmd:string, context, filename, callback) {
+    static async evalHandler(cmd:string, context, filename, callback) {        
         try {
             cmd = cmd.trim()
             if (!cmd) { 
@@ -141,17 +141,17 @@ async function main() {
     AvaShell.init()
 
     if (process.argv.length > 2) {
+        if (!App.isConnected) {
+            console.error("AVA node is not connected")
+            return
+        }
+
         // standalone invocation
         let args = process.argv.slice(2)
         await App.commandHandler.handleCommand(args.join(" "))
         return
     }
 
-    console.log("****************************************")
-    console.log("AVA shell initialized.")
-    console.log("Node ID: " + App.avaClient.nodeId)
-    console.log("****************************************")
-    
     const options = { 
         useColors: true, 
         prompt: 'ava> ', 

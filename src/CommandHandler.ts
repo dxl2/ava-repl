@@ -850,6 +850,12 @@ export class CommandHandler {
             this.printHelp(params[0])
             return
         }
+
+        if (params[0] == "connect") {
+            params.shift()
+            await App.connectAvaNode(params[1], params[2], params[3])
+            return
+        }
         
         let context = this.activeContext
 
@@ -871,6 +877,12 @@ export class CommandHandler {
         let methodFn = handler[method]
         if (!methodFn) {
             throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
+        }
+
+        if (!App.isConnected) {
+            console.error("Node is disconnected")
+            console.log(`connect [ip=127.0.0.1] [port=9650] [protocol=http]`)
+            return
         }
         
         let commandSpec = this.getCommandSpec(context, method)

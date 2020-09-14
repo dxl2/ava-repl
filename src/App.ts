@@ -12,6 +12,7 @@ const AVA_KEYSTORE_USERNAME_ENV = "AVA_KEYSTORE_USERNAME"
 const AVA_KEYSTORE_PASSWORD_ENV = "AVA_KEYSTORE_PASSWORD"
 
 export class App {
+    static isConnected = false
     static ava: avalanche.Avalanche
     static avaClient: AvaClient
     static commandHandler: CommandHandler
@@ -20,27 +21,52 @@ export class App {
     static async init() {
         if (this.ava) {
             return
-        }
+        }        
 
-        this.ava = new avalanche.Avalanche("127.0.0.1", 9650, "http")
-        this.avaClient = new AvaClient(this.ava)
-        await this.avaClient.init()
+        await this.connectAvaNode()
 
         this.commandHandler = new CommandHandler()
 
-        let envUser = process.env[AVA_KEYSTORE_USERNAME_ENV]
-        let envPass = process.env[AVA_KEYSTORE_PASSWORD_ENV]
+        this.pendingTxService.start()
+    }
 
-        if (envUser) {
-            if (!envPass) {
-                log.warn("Ignoring AVA_KEYSTORE_USERNAME because missing password")
-            } else {
-                log.info("Setting active user from environment")
-                let au = new AvaKeystoreUser(envUser, envPass)
-                this.avaClient.keystoreCache.addUser(au, true)
-            }
+    static printNodeInfo() {
+        console.log("****************************************")
+        console.log("AVA shell initialized.")
+
+        if (!App.isConnected) {
+            console.log("Node is disconnected")
+        } else {
+            console.log("Node ID: " + App.avaClient.nodeId)
+            console.log(`Node Address: ${App.ava.getProtocol()}://${App.ava.getIP()}:${App.ava.getPort()}`)
         }
 
-        this.pendingTxService.start()
+        console.log("****************************************")
+    }
+
+    static async connectAvaNode(address: string="127.0.0.1", port:number=9650, protocol:string="http") {
+        try {
+            this.ava = new avalanche.Avalanche(address, port, protocol)            
+            this.avaClient = new AvaClient(this.ava)
+            await this.avaClient.init()
+            this.isConnected = true
+            this.printNodeInfo()
+
+            let envUser = process.env[AVA_KEYSTORE_USERNAME_ENV]
+            let envPass = process.env[AVA_KEYSTORE_PASSWORD_ENV]
+
+            if (envUser) {
+                if (!envPass) {
+                    log.warn("Ignoring AVA_KEYSTORE_USERNAME because missing password")
+                } else {
+                    log.info("Setting active user from environment")
+                    let au = new AvaKeystoreUser(envUser, envPass)
+                    this.avaClient.keystoreCache.addUser(au, true)
+                }
+            }
+        } catch (error) {
+            console.error("Failed to connect to AVA node.", error.toString())
+            this.isConnected = false
+        }
     }
 }
