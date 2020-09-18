@@ -95,6 +95,13 @@ export class CommandError extends Error {
     }
 }
 
+export class MetricsCommandHandler {
+    @command(new CommandSpec([], "Show node metrics"))
+    async show() {
+        let out = await App.ava.Metrics().getMetrics()
+        console.log(out)
+    }
+}
 
 export class InfoCommandHandler {
     @command(new CommandSpec([], "Show current node ID"))
@@ -119,7 +126,7 @@ export class InfoCommandHandler {
 
     @command(new CommandSpec([], "Get the name of the network this node is participating in."))
     async networkName() {
-        let res = await App.ava.Info().getNetworkID()
+        let res = await App.ava.Info().getNetworkName()
         console.log(res)
         return res
     }
@@ -185,9 +192,9 @@ export class KeystoreCommandHandler {
         console.log(out)
     }
 
-    @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password"), new FieldSpec("encryptedBlob")], "Import a user"))
+    @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password"), new FieldSpec("serializedUser")], "Import a user"))
     async importUser(username, password, encryptedBlob) {
-        await App.ava.NodeKeys().importUser(username, password, encryptedBlob)
+        await App.ava.NodeKeys().importUser(username, encryptedBlob, password)
         console.log(`Successfully imported user`)
     }
     
@@ -724,6 +731,7 @@ const META_COMMANDS = [
 ]
 
 export class CommandHandler {
+    metricsHandler: MetricsCommandHandler
     infoHandler: InfoCommandHandler
     keystoreHandler: KeystoreCommandHandler
     avmHandler: AvmCommandHandler
@@ -737,6 +745,7 @@ export class CommandHandler {
 
     constructor() {
         // log.info("init CommandHandler")
+        this.metricsHandler = new MetricsCommandHandler()
         this.infoHandler = new InfoCommandHandler()
         this.keystoreHandler = new KeystoreCommandHandler()
         this.avmHandler = new AvmCommandHandler()
@@ -752,6 +761,7 @@ export class CommandHandler {
         // log.info("commandSpecMap", this.commandSpecMap)
 
         this.handlerMap = {
+            "metrics": this.metricsHandler,
             "info": this.infoHandler,
             "keystore": this.keystoreHandler,
             "avm": this.avmHandler,
