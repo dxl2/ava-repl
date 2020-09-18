@@ -170,6 +170,26 @@ export class KeystoreCommandHandler {
         App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password))
         console.log(`Created user: ${username}`)
     }
+
+    @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password")], "Delete a user"))
+    async deleteUser(username, password) {
+        await App.ava.NodeKeys().deleteUser(username, password)
+        App.avaClient.keystoreCache.removeUser(username)
+        console.log(`Deleted user: ${username}`)
+    }
+
+    @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password")], "Export a user"))
+    async exportUser(username, password) {
+        let out = await App.ava.NodeKeys().exportUser(username, password)
+        console.log(`Exported user`)
+        console.log(out)
+    }
+
+    @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password"), new FieldSpec("encryptedBlob")], "Import a user"))
+    async importUser(username, password, encryptedBlob) {
+        await App.ava.NodeKeys().importUser(username, password, encryptedBlob)
+        console.log(`Successfully imported user`)
+    }
     
     @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password")], "Authenticate with a username and password"))
     async login(username:string, password:string) {
@@ -576,7 +596,7 @@ export class AvmCommandHandler {
         
         let res = await App.ava.XChain().listAddresses(user.username, user.password)
 
-        console.log("Addresses for keystore: " + user.username)
+        console.log("Addresses for keystore user: " + user.username)
         if (!res || !res.length) {
             console.log("None found")
             return
@@ -641,6 +661,7 @@ export class AvmCommandHandler {
     @command(new CommandSpec([new FieldSpec("address")], "Get the balance of all assets in an account"))
     async getAllBalances(address) {
         let bal = await App.ava.XChain().getAllBalances(address)
+        // log.info("ddx bal", bal)
 
         // populate asset names
         for (let entry of bal) {

@@ -13,6 +13,13 @@ export class AvaKeystoreCache {
         }
     }
 
+    removeUser(username:string) {
+        delete this.usernameMap[username]
+        if (this.activeUsername == username) {
+            this.activeUsername = null
+        }
+    }
+
     getUser(user: AvaKeystoreUser) {
         return this.usernameMap[user.username]
     }
