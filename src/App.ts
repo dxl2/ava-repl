@@ -31,8 +31,9 @@ export class App {
     }
 
     static printNodeInfo() {
-        console.log("****************************************")
+        console.log("*************************************************")
         console.log("AVA shell initialized.")
+        console.log()
 
         if (!App.isConnected) {
             console.log("Node is disconnected")
@@ -41,7 +42,7 @@ export class App {
             console.log(`Node Address: ${App.ava.getProtocol()}://${App.ava.getIP()}:${App.ava.getPort()}`)
         }
 
-        console.log("****************************************")
+        console.log("*************************************************")
     }
 
     static async connectAvaNode(address: string="127.0.0.1", port:number=9650, protocol:string="http") {

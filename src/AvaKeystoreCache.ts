@@ -24,7 +24,7 @@ export class AvaKeystoreCache {
     getActiveUser() {
         let out = this.usernameMap[this.activeUsername]
         if (!out) {
-            log.warn("Missing active user")
+            // log.warn("Missing active user")
             return
         }
 

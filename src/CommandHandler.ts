@@ -191,7 +191,7 @@ export class KeystoreCommandHandler {
     }
 
     @command(new CommandSpec([new FieldSpec("username")], "Sets the active user for future avm commands"))
-    async setActive(username: string) {
+    async setUser(username: string) {
         if (!App.avaClient.keystoreCache.hasUser(username)) {
             console.error("Please authenticate with this user first using command: login")
             return
@@ -206,7 +206,7 @@ export class PlatformCommandHandler {
     _getActiveUser() {
         let user = App.avaClient.keystoreCache.getActiveUser()
         if (!user) {
-            console.log("Set active user first with setUser")
+            console.log("Missing user. Set active user with command: 'keystore login' or create user with 'keystore createUser'")
         }
 
         return user
@@ -870,13 +870,17 @@ export class CommandHandler {
 
         let handler = this.handlerMap[context]
         if (!handler) {
-            throw new CommandError("Unknown context: " + context, "not_found")
+            // throw new CommandError("Unknown context: " + context, "not_found")
+            console.log("Unknown context or command")
+            return
         }
 
         let method = params.shift()
         let methodFn = handler[method]
         if (!methodFn) {
-            throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
+            // throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
+            console.log(`Unknown method ${method} in context ${context}`)
+            return
         }
 
         if (!App.isConnected) {
