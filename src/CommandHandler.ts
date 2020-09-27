@@ -113,7 +113,8 @@ export class InfoCommandHandler {
     @command(new CommandSpec([], "Get transaction fee of the network"))
     async txFee() {
         let res = await App.ava.Info().getTxFee()
-        console.log(res.toString(10))
+        console.log("txFee: " + res.txFee.toString(10))
+        console.log("creationTxFee: " + res.creationTxFee.toString(10))
         return res
     }
 
