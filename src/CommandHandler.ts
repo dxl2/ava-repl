@@ -155,6 +155,17 @@ export class HealthCommandHandler {
     }
 }
 
+export class ShellCommandHandler {
+    @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("port"), new FieldSpec("protocol", "http"), new FieldSpec("networkId", "default") ], "Connect to a network"))
+    async connect(address, port, protocol, networkId) {
+        if (networkId == "default") {
+            networkId = undefined
+        }
+        
+        await App.connectAvaNode(address, port, protocol, networkId)
+    }
+}
+
 export class KeystoreCommandHandler {
     @command(new CommandSpec([], "List the names of all users on the node"))
     async listUsers() {
@@ -723,7 +734,8 @@ export enum CommandContext {
     Keystore = "keystore",
     AVM = "avm",
     Platform = "platform",
-    Health = "health"
+    Health = "health",
+    Shell = "shell"
 }
 
 const META_COMMANDS = [
@@ -738,6 +750,7 @@ export class CommandHandler {
     avmHandler: AvmCommandHandler
     platformHandler: PlatformCommandHandler
     healthHandler: HealthCommandHandler
+    shellHandler: ShellCommandHandler
     handlerMap
     activeContext: string
     commandSpecMap:{[key:string]: CommandSpec} = {}
@@ -752,12 +765,14 @@ export class CommandHandler {
         this.avmHandler = new AvmCommandHandler()
         this.platformHandler = new PlatformCommandHandler()
         this.healthHandler = new HealthCommandHandler()
+        this.shellHandler = new ShellCommandHandler()
 
         this.addCommandSpec(this.keystoreHandler, CommandContext.Keystore)
         this.addCommandSpec(this.infoHandler, CommandContext.Info)
         this.addCommandSpec(this.avmHandler, CommandContext.AVM)
         this.addCommandSpec(this.platformHandler, CommandContext.Platform)
         this.addCommandSpec(this.healthHandler, CommandContext.Health)
+        this.addCommandSpec(this.shellHandler, CommandContext.Shell)
 
         // log.info("commandSpecMap", this.commandSpecMap)
 
@@ -767,7 +782,8 @@ export class CommandHandler {
             "keystore": this.keystoreHandler,
             "avm": this.avmHandler,
             "platform": this.platformHandler,
-            "health": this.healthHandler
+            "health": this.healthHandler,
+            "shell": this.shellHandler
         }
 
         for (let context in this.handlerMap) {
@@ -883,12 +899,6 @@ export class CommandHandler {
             return
         }
 
-        if (params[0] == "connect") {
-            params.shift()
-            await App.connectAvaNode(params[1], params[2], params[3])
-            return
-        }
-        
         let context = this.activeContext
 
         if (!context) {
@@ -917,7 +927,7 @@ export class CommandHandler {
 
         if (!App.isConnected) {
             console.error("Node is disconnected")
-            console.log(`connect [ip=127.0.0.1] [port=9650] [protocol=http]`)
+            console.log(`shell connect [ip=127.0.0.1] [port=9650] [protocol=http] <networkId>`)
             return
         }
         

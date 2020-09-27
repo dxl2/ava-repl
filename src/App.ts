@@ -45,9 +45,9 @@ export class App {
         console.log("*************************************************")
     }
 
-    static async connectAvaNode(address: string="127.0.0.1", port:number=9650, protocol:string="http") {
-        try {
-            this.ava = new avalanche.Avalanche(address, port, protocol)            
+    static async connectAvaNode(address: string="127.0.0.1", port:number=9650, protocol:string="http", networkId?) {
+        try {            
+            this.ava = new avalanche.Avalanche(address, port, protocol, networkId)
             this.avaClient = new AvaClient(this.ava)
             await this.avaClient.init()
             this.isConnected = true
