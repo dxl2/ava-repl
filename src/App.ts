@@ -32,12 +32,14 @@ export class App {
 
     static printNodeInfo() {
         console.log("*************************************************")
-        console.log("AVA shell initialized.")
+        console.log("AVA Shell initialized.")
         console.log()
 
         if (!App.isConnected) {
-            console.log("Node is disconnected")
+            console.log("Disconnected")
         } else {
+            console.log("Connected")
+            console.log("Network Name: " + App.avaClient.networkName)
             console.log("Node ID: " + App.avaClient.nodeId)
             console.log(`Node Address: ${App.ava.getProtocol()}://${App.ava.getIP()}:${App.ava.getPort()}`)
         }

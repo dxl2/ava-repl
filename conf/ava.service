@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/ava
-ExecStart=/opt/ava/bin/ava
+ExecStart=/opt/ava/bin/ava --network-id=fuji
 Restart=on-failure
 
 [Install]

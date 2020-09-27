@@ -10,6 +10,7 @@ export class AvaKeystoreUser {
 export class AvaClient {
     static NATIVE_ASSET = "AVAX"
     nodeId:string
+    networkName:string
     keystoreCache = new AvaKeystoreCache()
     activeAddress: string
 
@@ -18,6 +19,7 @@ export class AvaClient {
 
     async init() {
         this.nodeId = await this.ava.Info().getNodeID()
+        this.networkName = await this.ava.Info().getNetworkName()
     }
 
     setActiveAddress(addr: string) {
