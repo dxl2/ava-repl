@@ -8,6 +8,9 @@ import { StringUtility } from "./StringUtility";
 import 'reflect-metadata'
 import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
+import { JsonFile } from "./JsonFile";
+
+const DEFAULT_KEY = "DEFAULT"
 
 class FieldSpec {
     constructor(public name:string, public defaultValue=null) {
@@ -156,12 +159,8 @@ export class HealthCommandHandler {
 }
 
 export class ShellCommandHandler {
-    @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("port"), new FieldSpec("protocol", "http"), new FieldSpec("networkId", "default") ], "Connect to a network"))
+    @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("port"), new FieldSpec("protocol", "http"), new FieldSpec("networkId", DEFAULT_KEY) ], "Connect to a network"))
     async connect(address, port, protocol, networkId) {
-        if (networkId == "default") {
-            networkId = undefined
-        }
-
         await App.connectAvaNode(address, port, protocol, networkId)
     }
 }
@@ -457,32 +456,20 @@ export class PlatformCommandHandler {
         log.info("transactionId", txId)
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    @command(new CommandSpec([new FieldSpec("subnetId", DEFAULT_KEY)], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getPendingValidators(subnetId?) {
-        if (subnetId == "default") {
-            subnetId = null
-        }
-
         let pv = await App.ava.PChain().getPendingValidators(subnetId)
         console.log(pv)
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
+    @command(new CommandSpec([new FieldSpec("subnetId", DEFAULT_KEY)], "List current validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getCurrentValidators(subnetId?) {
-        if (subnetId == "default") {
-            subnetId = null
-        }
-
         let pv = await App.ava.PChain().getCurrentValidators(subnetId)
         console.log(pv)
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetId", "default")], "Check if current node is a validator for a subnet, or the Default Subnet if no subnetId is specified"))
+    @command(new CommandSpec([new FieldSpec("subnetId", DEFAULT_KEY)], "Check if current node is a validator for a subnet, or the Default Subnet if no subnetId is specified"))
     async isCurrentValidator(subnetId?) {
-        if (subnetId == "default") {
-            subnetId = null
-        }
-
         let found = false
         let nodeId = App.avaClient.nodeId
         let res = await App.ava.PChain().getCurrentValidators(subnetId)
@@ -502,6 +489,44 @@ export class PlatformCommandHandler {
 }
 
 export class AdminCommandHandler {
+    @command(new CommandSpec([], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
+    async alias(endpoint, alias) {
+        let res = await App.ava.Admin().alias(endpoint, alias)
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([], "Give a blockchain an alias, a different name that can be used any place the blockchain’s ID is used."))
+    async aliasChain(chain, alias) {
+        let res = await App.ava.Admin().aliasChain(chain, alias)
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([], "Writes a profile of mutex statistics to lock.profile"))
+    async lockProfile() {
+        let res = await App.ava.Admin().lockProfile()
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([], "Writes a memory profile of the to mem.profile"))
+    async memoryProfile() {
+        let res = await App.ava.Admin().memoryProfile()
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([], "Start profiling the CPU utilization of the node. To stop, call stopCPUProfiler. On stop, writes the profile to cpu.profile"))
+    async startCPUProfiler() {
+        let res = await App.ava.Admin().startCPUProfiler()
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([], "Stop the CPU profile that was previously started"))
+    async stopCPUProfiler() {
+        let res = await App.ava.Admin().stopCPUProfiler()
+        console.log(OutputPrinter.pprint(res))
+    }
+}
+
+export class AuthCommandHandler {
     @command(new CommandSpec([], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
     async alias(endpoint, alias) {
         let res = await App.ava.Admin().alias(endpoint, alias)
@@ -548,6 +573,37 @@ export class AvmCommandHandler {
 
         return user
     }
+
+    @command(new CommandSpec([new FieldSpec("jsonFilePath")], "Given a JSON representation of this Virtual Machine’s genesis state, create the byte representation of that state."))
+    async buildGenesis(jsonFilePath) {
+        let jf = new JsonFile(jsonFilePath)
+        let data = await jf.read()
+        let res = await App.ava.XChain().buildGenesis(data)
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([new FieldSpec("address")], "Export the private for the current keystore user"))
+    async exportKey(address) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.XChain().exportKey(user.username, user.password, address)
+        console.log(res)
+    }
+
+    @command(new CommandSpec([new FieldSpec("privateKey")], "Export the private for the current keystore user"))
+    async importKey(privateKey) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.XChain().importKey(user.username, user.password, privateKey)
+        console.log("Imported private key for addres: " + res)
+    }
+
 
     @command(new CommandSpec([new FieldSpec("assetId")], "Get an asset's name and symbol from asset id"))
     async getAssetDescription(assetId: string) {
@@ -765,6 +821,19 @@ export class AvmCommandHandler {
             console.log(`${tx.id}\t\t${tx.ts.fromNow()}\t\t${tx.state || PendingTxState.Processing}`)
         }
     }
+
+    @command(new CommandSpec([new FieldSpec("tx")], "Issue a transaction to the X-chain"))
+    async issueTx(tx: string) {
+        let txId = await App.ava.XChain().issueTx(tx)
+        console.log("result txId: " + txId)
+    }
+
+    @command(new CommandSpec([new FieldSpec("addresses_comma_separated"), new FieldSpec("limit", DEFAULT_KEY), new FieldSpec("startIndex", DEFAULT_KEY)], "Gets the UTXOs that reference a given address. If sourceChain is specified, then it will retrieve the atomic UTXOs exported from that chain to the X Chain."))
+    async getUTXOs(addressesRaw:string, limit?, startIndex?) {
+        let addresses = StringUtility.splitTokens(addressesRaw, /,/)
+        let res = await App.ava.XChain().getUTXOs(addresses, limit, startIndex)
+        console.log(OutputPrinter.pprint(res))
+    }
 }
 
 export enum CommandContext {
@@ -863,6 +932,7 @@ export class CommandHandler {
         }
 
         // log.info("tlc", out)
+        out.sort()
         return out
     }
 
@@ -877,6 +947,7 @@ export class CommandHandler {
             out.push(cmd)
         }
 
+        out.sort()
         return out
     }
 
@@ -979,6 +1050,12 @@ export class CommandHandler {
             console.log("Invalid Arguments")
             commandSpec.printUsage("Usage: ")
             return
+        }
+
+        for (let i=0; i<params.length; i++) {
+            if (params[i] == DEFAULT_KEY) {
+                params[i] = undefined
+            }
         }
 
         try {

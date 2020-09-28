@@ -86,7 +86,9 @@ export class AvaShell {
     }
 
     static appendSeparator(items) {
-        return items.map(x => `${x} `)
+        let out = items.map(x => `${x} `)
+        out.sort
+        return out
     }
 
     static completer(line) {        
@@ -131,7 +133,7 @@ export class AvaShell {
     static getCompletions(needle:string, haystack:string[]) {
         // log.info("getCompl", needle, haystack)
         let matches = haystack.filter((c) => c.startsWith(needle))
-
+        matches.sort()
         return matches
     }
 }

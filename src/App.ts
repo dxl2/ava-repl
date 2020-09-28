@@ -62,7 +62,7 @@ export class App {
                 if (!envPass) {
                     log.warn("Ignoring AVA_KEYSTORE_USERNAME because missing password")
                 } else {
-                    log.info("Setting active user from environment")
+                    console.log("Setting active keystore username from environment: " + envUser)
                     let au = new AvaKeystoreUser(envUser, envPass)
                     this.avaClient.keystoreCache.addUser(au, true)
                 }
