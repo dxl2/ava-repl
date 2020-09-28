@@ -250,6 +250,26 @@ export class PlatformCommandHandler {
         return user
     }
 
+    @command(new CommandSpec([], "Get all the blockchains that exist (excluding the P-Chain)"))
+    async getBlockchains() {
+        let res = await App.ava.PChain().getBlockchains()
+        console.log(OutputPrinter.pprint(res))
+    }
+
+    @command(new CommandSpec([new FieldSpec("blockchainId")], "Get the status of a blockchain"))
+    async getBlockchainStatus(blockchainId) {
+        let res = await App.ava.PChain().getBlockchainStatus(blockchainId)
+        console.log(res)
+    }
+
+    @command(new CommandSpec([new FieldSpec("subnetId")], "Get the IDs of the blockchains a Subnet validates."))
+    async validates(subnetId) {
+        let res = await App.ava.PChain().sampleValidators(subnetId)
+        App.ava.PChain().validates(subnetId)
+        console.log(OutputPrinter.pprint(res))
+    }
+
+
     @command(new CommandSpec([], "Create a new P-Chain address"))
     async createAddress() {
         let user = this._getActiveUser()
@@ -486,6 +506,27 @@ export class PlatformCommandHandler {
         }
     }
 
+    @command(new CommandSpec([new FieldSpec("address")], "Export the private for the current keystore user"))
+    async exportKey(address) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.PChain().exportKey(user.username, user.password, address)
+        console.log(res)
+    }
+
+    @command(new CommandSpec([new FieldSpec("privateKey")], "Export the private for the current keystore user"))
+    async importKey(privateKey) {
+        let user = this._getActiveUser()
+        if (!user) {
+            return
+        }
+
+        let res = await App.ava.PChain().importKey(user.username, user.password, privateKey)
+        console.log("Imported private key for addres: " + res)
+    }
 }
 
 export class AdminCommandHandler {
