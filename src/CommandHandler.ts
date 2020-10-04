@@ -256,6 +256,26 @@ export class PlatformCommandHandler {
         console.log(OutputPrinter.pprint(res))
     }
 
+    @command(new CommandSpec([new FieldSpec("addresses...")], "Get the amount of nAVAX staked by a set of addresses. The amount returned does not include staking rewards."))
+    async getStake(...addresses) {
+        let res = await App.ava.PChain().getStake(addresses)
+        console.log(res.toString(10))
+    }
+
+    @command(new CommandSpec([], "Get the minimum amount of AVAX required to validate the Primary Network and the minimum amount of AVAX that can be delegated."))
+    async getMinStake() {
+        let res = await App.ava.PChain().getMinStake()
+        // console.log(OutputPrinter.pprint(res))
+        console.log("minValidatorStake:", res.minDelegatorStake.toString(10))
+        console.log("minDelegatorStake:", res.minDelegatorStake.toString(10))
+    }
+
+    @command(new CommandSpec([], "Retrieve an assetID for a subnet’s staking asset. Currently this always returns the Primary Network’s staking assetID."))
+    async getStakingAssetID() {
+        let res = await App.ava.PChain().getStakingAssetID()
+        console.log("AssetID", res)
+    }
+
     @command(new CommandSpec([new FieldSpec("blockchainId")], "Get the status of a blockchain"))
     async getBlockchainStatus(blockchainId) {
         let res = await App.ava.PChain().getBlockchainStatus(blockchainId)
@@ -269,6 +289,17 @@ export class PlatformCommandHandler {
         console.log(OutputPrinter.pprint(res))
     }
 
+    @command(new CommandSpec([new FieldSpec("blockchainId")], "Get the Subnet that validates a given blockchain."))
+    async validatedBy(blockchainId) {
+        let res = await App.ava.PChain().validatedBy(blockchainId)
+        console.log(res)
+    }
+
+    @command(new CommandSpec([new FieldSpec("size"), new FieldSpec("subnetId")], "Sample validators from the specified Subnet. Retrieves a list of valiators IDs."))
+    async sampleValidators(size, subnetId) {
+        let res = await App.ava.PChain().sampleValidators(size, subnetId)
+        console.log(OutputPrinter.pprint(res))
+    }
 
     @command(new CommandSpec([], "Create a new P-Chain address"))
     async createAddress() {
