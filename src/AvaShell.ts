@@ -7,6 +7,7 @@ import { CommandHandler, CommandContext } from "./CommandHandler";
 import { log } from "./AppLog";
 import { StringUtility } from "./StringUtility";
 import { AppRuntime } from "./AppRuntime";
+import "./Custom";
 
 let replServer
 

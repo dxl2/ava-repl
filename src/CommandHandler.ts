@@ -9,6 +9,7 @@ import 'reflect-metadata'
 import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
+import { CommandRegistry } from "./CommandRegistry";
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -26,7 +27,7 @@ class FieldSpec {
     }
 }
 
-class CommandSpec {
+export class CommandSpec {
     name: string
     context: string
     countRequiredFields = 0
@@ -69,7 +70,9 @@ class CommandSpec {
     }
 }
 
+
 const commandsMetadata = Symbol("commands");
+export { commandsMetadata }
 
 export function command(definition: any) {
     // log.error(`defining column`, definition)
@@ -909,6 +912,7 @@ export class AvmCommandHandler {
 }
 
 export enum CommandContext {
+    Metrics = "metrics",
     Info = "info",
     Keystore = "keystore",
     AVM = "avm",
@@ -932,14 +936,11 @@ export class CommandHandler {
     platformHandler: PlatformCommandHandler
     healthHandler: HealthCommandHandler
     shellHandler: ShellCommandHandler
-    handlerMap
+    
     activeContext: string
-    commandSpecMap:{[key:string]: CommandSpec} = {}
-
-    contextMethodMap:{[key:string]:string[]} = {}
 
     constructor() {
-        // log.info("init CommandHandler")
+        // Default Command Handlers
         this.metricsHandler = new MetricsCommandHandler()
         this.infoHandler = new InfoCommandHandler()
         this.keystoreHandler = new KeystoreCommandHandler()
@@ -949,48 +950,14 @@ export class CommandHandler {
         this.shellHandler = new ShellCommandHandler()
         this.adminHandler = new AdminCommandHandler()
 
-        this.addCommandSpec(this.keystoreHandler, CommandContext.Keystore)
-        this.addCommandSpec(this.infoHandler, CommandContext.Info)
-        this.addCommandSpec(this.avmHandler, CommandContext.AVM)
-        this.addCommandSpec(this.platformHandler, CommandContext.Platform)
-        this.addCommandSpec(this.healthHandler, CommandContext.Health)
-        this.addCommandSpec(this.shellHandler, CommandContext.Shell)
-        this.addCommandSpec(this.adminHandler, CommandContext.Admin)
-
-        // log.info("commandSpecMap", this.commandSpecMap)
-
-        this.handlerMap = {
-            "metrics": this.metricsHandler,
-            "info": this.infoHandler,
-            "keystore": this.keystoreHandler,
-            "avm": this.avmHandler,
-            "platform": this.platformHandler,
-            "health": this.healthHandler,
-            "shell": this.shellHandler,
-            "admin": this.adminHandler
-        }
-
-        for (let context in this.handlerMap) {
-            this.contextMethodMap[context] = []
-
-            for (var m in this.handlerMap[context]) {
-                // log.info("ddx", m)
-                if (m.startsWith("_")) {
-                    continue
-                }
-
-                this.contextMethodMap[context].push(m)
-            }            
-        }
-    }
-
-    addCommandSpec(obj, context:string) {
-        let map = Reflect.getMetadata(commandsMetadata, obj)
-        for (let commandName in map) {            
-            map[commandName].name = commandName
-            map[commandName].context = context
-            this.commandSpecMap[map[commandName].id] = map[commandName]
-        }
+        CommandRegistry.registerCommandHandler(CommandContext.Metrics, this.metricsHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.AVM, this.avmHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Admin, this.adminHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Keystore, this.keystoreHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Info, this.infoHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Platform, this.platformHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Health, this.healthHandler)
+        CommandRegistry.registerCommandHandler(CommandContext.Shell, this.shellHandler)
     }
 
     getTopLevelCommands() {
@@ -999,7 +966,7 @@ export class CommandHandler {
             out.push(cmd)
         }
 
-        for (let context in this.handlerMap) {
+        for (let context in CommandRegistry.handlerMap) {
             out.push(context)
         }
 
@@ -1011,7 +978,7 @@ export class CommandHandler {
     getContextCommands(context) {
         let out = []
 
-        for (let cmd of this.contextMethodMap[context] || []) {
+        for (let cmd of CommandRegistry.contextMethodMap[context] || []) {
             out.push(cmd)
         }
 
@@ -1029,7 +996,7 @@ export class CommandHandler {
         console.log("SUPPORTED COMMANDS:")
         console.log("-------------------")
 
-        let contexts = Object.keys(this.contextMethodMap)
+        let contexts = Object.keys(CommandRegistry.contextMethodMap)
         contexts.sort()
 
         for (let context of contexts) {
@@ -1039,7 +1006,7 @@ export class CommandHandler {
                 console.log(context)
             }
             
-            let methods = this.contextMethodMap[context].slice()
+            let methods = CommandRegistry.contextMethodMap[context].slice()
             methods.sort()
 
             for (let method of methods) {
@@ -1061,12 +1028,12 @@ export class CommandHandler {
     }
 
     isContext(context) {
-        return this.handlerMap[context]
+        return CommandRegistry.handlerMap[context]
     }
 
     getCommandSpec(context, method) {
         let commandId = `${context}_${method}`
-        return this.commandSpecMap[commandId]
+        return CommandRegistry.commandSpecMap[commandId]
     }
 
     async handleCommand(cmd:string) {
@@ -1096,7 +1063,7 @@ export class CommandHandler {
             context = params.shift()
         }
 
-        let handler = this.handlerMap[context]
+        let handler = CommandRegistry.handlerMap[context]
         if (!handler) {
             // throw new CommandError("Unknown context: " + context, "not_found")
             console.log("Unknown context or command")

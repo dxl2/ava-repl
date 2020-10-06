@@ -116,5 +116,8 @@ Keystore credential can also be set as environment variables `AVA_KEYSTORE_USERN
 To invoke in CLI mode, simply pass the along the commandline. Make sure to set the environment variables for the Keystore user.
 `build/AvaShell.js avm checkTx <tx>`
 
+## Custom Commands
+You can easily add your own context and commands to the REPL shell. See Custom.ts for an example.
+
 ## Help
 Run `help` in REPL to see all supported commands, description of what they do, and invocation instructions.
