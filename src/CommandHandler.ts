@@ -111,13 +111,13 @@ export class MetricsCommandHandler {
 
 export class InfoCommandHandler {
     @command(new CommandSpec([], "Show current node ID"))
-    nodeId() {
+    getNodeId() {
         console.log(App.avaClient.nodeId)
         return App.avaClient.nodeId
     }
 
     @command(new CommandSpec([], "Get transaction fee of the network"))
-    async txFee() {
+    async getTxFee() {
         let res = await App.ava.Info().getTxFee()
         console.log("txFee: " + res.txFee.toString(10))
         console.log("creationTxFee: " + res.creationTxFee.toString(10))
@@ -125,21 +125,21 @@ export class InfoCommandHandler {
     }
 
     @command(new CommandSpec([], "Get the ID of the network this node is participating in."))
-    async networkId() {
+    async getNetworkId() {
         let res = await App.ava.Info().getNetworkID()
         console.log(res)
         return res
     }
 
     @command(new CommandSpec([], "Get the name of the network this node is participating in."))
-    async networkName() {
+    async getNetworkName() {
         let res = await App.ava.Info().getNetworkName()
         console.log(res)
         return res
     }
 
     @command(new CommandSpec([], "Show current node version"))
-    async nodeVersion() {
+    async getNodeVersion() {
         let ver = await App.ava.Info().getNodeVersion()
         console.log(ver)
         return ver
@@ -148,6 +148,20 @@ export class InfoCommandHandler {
     @command(new CommandSpec([], "Show the peers connected to the node"))
     async peers() {
         let peers = await App.ava.Info().peers()
+        console.log(OutputPrinter.pprint(peers))
+        return peers
+    }
+
+    @command(new CommandSpec([new FieldSpec("alias")], "Fetch the Blockchain ID for a given alias"))
+    async getBlockchainID(alias) {
+        let peers = await App.ava.Info().getBlockchainID(alias)
+        console.log(OutputPrinter.pprint(peers))
+        return peers
+    }
+
+    @command(new CommandSpec([new FieldSpec("chain")], "Check whether a given chain has finished bootstrapping"))
+    async isBootstrapped(chain) {
+        let peers = await App.ava.Info().isBootstrapped(chain)
         console.log(OutputPrinter.pprint(peers))
         return peers
     }
@@ -559,7 +573,7 @@ export class PlatformCommandHandler {
         }
 
         let res = await App.ava.PChain().importKey(user.username, user.password, privateKey)
-        console.log("Imported private key for addres: " + res)
+        console.log("Imported private key for address: " + res)
     }
 }
 
@@ -676,7 +690,7 @@ export class AvmCommandHandler {
         }
 
         let res = await App.ava.XChain().importKey(user.username, user.password, privateKey)
-        console.log("Imported private key for addres: " + res)
+        console.log("Imported private key for address: " + res)
     }
 
 
@@ -814,6 +828,12 @@ export class AvmCommandHandler {
             await this.getAllBalances(address)
             console.log()
         }
+    }
+
+    @command(new CommandSpec([new FieldSpec("txId")], "Returns the specified transaction."))
+    async getTx(txid) {
+        let res = await App.ava.XChain().getTx(txid)
+        console.log(res)
     }
 
     @command(new CommandSpec([], "Create a new X-Chain addresses controlled by the current user"))
