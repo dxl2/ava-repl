@@ -564,13 +564,13 @@ export class PlatformCommandHandler {
 }
 
 export class AdminCommandHandler {
-    @command(new CommandSpec([], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
+    @command(new CommandSpec([new FieldSpec("endpoint"), new FieldSpec("alias")], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
     async alias(endpoint, alias) {
         let res = await App.ava.Admin().alias(endpoint, alias)
         console.log(OutputPrinter.pprint(res))
     }
 
-    @command(new CommandSpec([], "Give a blockchain an alias, a different name that can be used any place the blockchain’s ID is used."))
+    @command(new CommandSpec([new FieldSpec("chain"), new FieldSpec("alias")], "Give a blockchain an alias, a different name that can be used any place the blockchain’s ID is used."))
     async aliasChain(chain, alias) {
         let res = await App.ava.Admin().aliasChain(chain, alias)
         console.log(OutputPrinter.pprint(res))
