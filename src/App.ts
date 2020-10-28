@@ -17,11 +17,14 @@ export class App {
     static avaClient: AvaClient
     static commandHandler: CommandHandler
     static pendingTxService = new PendingTxService()
+    static isStandaloneMode = false
 
-    static async init() {
+    static async init(isStandalone=false) {
         if (this.ava) {
             return
-        }        
+        }
+
+        this.isStandaloneMode = isStandalone
 
         await this.connectAvaNode()
 
@@ -31,6 +34,11 @@ export class App {
     }
 
     static printNodeInfo() {
+        if (this.isStandaloneMode)
+        {
+            return
+        }
+
         console.log("*************************************************")
         console.log("Avalanche Shell initialized.")
         console.log()
@@ -62,7 +70,11 @@ export class App {
                 if (!envPass) {
                     log.warn("Ignoring AVA_KEYSTORE_USERNAME because missing password")
                 } else {
-                    console.log("Setting active keystore username from environment: " + envUser)
+                    if (!this.isStandaloneMode)
+                    {
+                        console.log("Setting active keystore username from environment: " + envUser)
+                    }
+                    
                     let au = new AvaKeystoreUser(envUser, envPass)
                     this.avaClient.keystoreCache.addUser(au, true)
                 }

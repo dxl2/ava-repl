@@ -139,11 +139,18 @@ export class AvaShell {
     }
 }
 
+function isStandaloneInvocation()
+{
+    return (process.argv.length > 2)
+}
+
 async function main() {
-    await App.init()
+    let isStandalone = isStandaloneInvocation()
+    
+    await App.init(isStandalone)
     AvaShell.init()
 
-    if (process.argv.length > 2) {
+    if (isStandalone) {
         if (!App.isConnected) {
             console.error("AVA node is not connected")
             return
@@ -152,7 +159,7 @@ async function main() {
         // standalone invocation
         let args = process.argv.slice(2)
         await App.commandHandler.handleCommand(args.join(" "))
-        return
+        process.exit()
     }
 
     const options = { 
