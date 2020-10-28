@@ -428,15 +428,6 @@ export class PlatformCommandHandler {
         
     }
 
-    // async getNextPayerNonce(dest:string) {
-    //     let account = await this.getAccount(dest)
-    //     if (!account) {
-    //         throw new Error("Cannot find account " + dest)
-    //     } else {
-    //         return +account["nonce"] + 1
-    //     }
-    // }
-
     @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("x-dest")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
     async exportAVAX(amount: number, dest: string) {
         // remove any prefix X-
@@ -472,13 +463,10 @@ export class PlatformCommandHandler {
 
         let endTime = now.clone().add(endTimeDays, "days")
 
-        // let payerNonce = await this.getNextPayerNonce(destination)
-
         let user = this._getActiveUser()
         if (!user) {
             return
         }
-
 
         // let args = [App.avaClient.nodeId,
         //     startTime.toDate(),

@@ -32,7 +32,7 @@ export class App {
 
     static printNodeInfo() {
         console.log("*************************************************")
-        console.log("AVA Shell initialized.")
+        console.log("Avalanche Shell initialized.")
         console.log()
 
         if (!App.isConnected) {
