@@ -18,6 +18,7 @@ export class App {
     static commandHandler: CommandHandler
     static pendingTxService = new PendingTxService()
     static isStandaloneMode = false
+    static isPromptingEnquirer = false
 
     static async init(isStandalone=false) {
         if (this.ava) {
@@ -83,5 +84,14 @@ export class App {
             console.error("Failed to connect to AVA node.", error.toString())
             this.isConnected = false
         }
+    }
+
+    static getActiveUser() {
+        let user = App.avaClient.keystoreCache.getActiveUser()
+        if (!user) {
+            console.log("Missing user. Set active user with command: 'keystore login' or create user with 'keystore createUser'")
+        }
+
+        return user
     }
 }

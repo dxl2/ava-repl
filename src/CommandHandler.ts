@@ -10,11 +10,12 @@ import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
+import { AddValidatorCommand } from "./PlatformCommands";
 
 const DEFAULT_KEY = "DEFAULT"
 
-class FieldSpec {
-    constructor(public name:string, public defaultValue=null) {
+export class FieldSpec {
+    constructor(public name:string, public defaultValue=null, public helpText=null) {
 
     }
 
@@ -456,38 +457,30 @@ export class PlatformCommandHandler {
         console.log("result txId: " + txId)
     }
 
-    @command(new CommandSpec([new FieldSpec("destination"), new FieldSpec("stakeAmount"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
-    async addValidator(destination: string, stakeAmount:number, endTimeDays:number) {
-        let now = moment().seconds(0).milliseconds(0)
-        let startTime = now.clone().add(1, "minute")
+    // @command(new CommandSpec([new FieldSpec("destination"), new FieldSpec("stakeAmount"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
+    // async addValidator(destination: string, stakeAmount:number, endTimeDays:number) {
+    //     let now = moment().seconds(0).milliseconds(0)
+    //     let startTime = now.clone().add(1, "minute")
 
-        let endTime = now.clone().add(endTimeDays, "days")
+    //     let endTime = now.clone().add(endTimeDays, "days")
 
-        let user = this._getActiveUser()
-        if (!user) {
-            return
-        }
+    //     let user = this._getActiveUser()
+    //     if (!user) {
+    //         return
+    //     }
 
-        // let args = [App.avaClient.nodeId,
-        //     startTime.toDate(),
-        //     endTime.toDate(),
-        //     new BN(stakeAmount),
-        //     destination,
-        //     new BN(10)]
-        // log.info("ddx add", Debug.pprint(args))
-
-        let txId = await App.ava.PChain().addValidator(
-            user.username,
-            user.password,
-            App.avaClient.nodeId, 
-            startTime.toDate(), 
-            endTime.toDate(), 
-            new BN(stakeAmount),
-            destination,
-            new BN(10))
+    //     let txId = await App.ava.PChain().addValidator(
+    //         user.username,
+    //         user.password,
+    //         App.avaClient.nodeId, 
+    //         startTime.toDate(), 
+    //         endTime.toDate(), 
+    //         new BN(stakeAmount),
+    //         destination,
+    //         new BN(10))
         
-        log.info("transactionId", txId)
-    }
+    //     log.info("transactionId", txId)
+    // }
 
     @command(new CommandSpec([new FieldSpec("subnetId"), new FieldSpec("weight"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
     async addSubnetValidator(subnetId:string, weight: number, endTimeDays: number) {
@@ -966,6 +959,9 @@ export class CommandHandler {
         CommandRegistry.registerCommandHandler(CommandContext.Platform, this.platformHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Health, this.healthHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Shell, this.shellHandler)
+
+        // Register command models
+        CommandRegistry.registerCommandModel(new AddValidatorCommand())
     }
 
     getTopLevelCommands() {
@@ -984,11 +980,7 @@ export class CommandHandler {
     }
 
     getContextCommands(context) {
-        let out = []
-
-        for (let cmd of CommandRegistry.contextMethodMap[context] || []) {
-            out.push(cmd)
-        }
+        let out = CommandRegistry.getContextCommands(context)
 
         for (let cmd of META_COMMANDS) {
             out.push(cmd)
@@ -1004,8 +996,7 @@ export class CommandHandler {
         console.log("SUPPORTED COMMANDS:")
         console.log("-------------------")
 
-        let contexts = Object.keys(CommandRegistry.contextMethodMap)
-        contexts.sort()
+        let contexts = CommandRegistry.getAllContexts()
 
         for (let context of contexts) {
             if (targetContext && context != targetContext) {
@@ -1014,6 +1005,11 @@ export class CommandHandler {
                 console.log(context)
             }
             
+            for (let model of CommandRegistry.getCommnadModels(context))
+            {
+                model.printUsage("    ")
+            }
+
             let methods = CommandRegistry.contextMethodMap[context].slice()
             methods.sort()
 
@@ -1045,6 +1041,11 @@ export class CommandHandler {
     }
 
     async handleCommand(cmd:string) {
+        if (App.isPromptingEnquirer)
+        {
+            return
+        }
+
         let params = StringUtility.splitTokens(cmd)
 
         if (params.length < 1) {
@@ -1071,14 +1072,26 @@ export class CommandHandler {
             context = params.shift()
         }
 
+        let method = params.shift()
+
+        let commandModel = CommandRegistry.getCommandModel(context, method)
+        if (commandModel) {
+            if (commandModel.requireKeystore() && !App.avaClient.keystoreCache.getActiveUser()) {
+                console.log("Missing user. Set active user with command: 'keystore login' or create user with 'keystore createUser'")
+                return
+            }
+
+            await commandModel.promptAndRun()
+            return
+        }
+
         let handler = CommandRegistry.handlerMap[context]
         if (!handler) {
             // throw new CommandError("Unknown context: " + context, "not_found")
             console.log("Unknown context or command")
             return
         }
-
-        let method = params.shift()
+       
         let methodFn = handler[method]
         if (!methodFn) {
             // throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
