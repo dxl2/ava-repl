@@ -11,7 +11,6 @@ import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
 import { AddValidatorCommand } from "./PlatformCommands";
-import readline from 'readline-promise';
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -876,7 +875,7 @@ export class AvmCommandHandler {
         // console.log(`Balance on ${address} for all assets`)
         console.log("submitted transaction...")
         console.log(res)
-        App.pendingTxService.add(res)
+        App.pendingTxService.add(res.txID)
     }
 
     @command(new CommandSpec([new FieldSpec("txId")], "Check the status of a transaction id"))
