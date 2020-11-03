@@ -11,6 +11,7 @@ import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
 import { AddValidatorCommand } from "./PlatformCommands";
+import readline from 'readline-promise';
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -142,7 +143,7 @@ export class InfoCommandHandler {
     @command(new CommandSpec([], "Show current node version"))
     async getNodeVersion() {
         let ver = await App.ava.Info().getNodeVersion()
-        console.log(ver)
+        console.log(ver)    
         return ver
     }
 
@@ -1041,7 +1042,7 @@ export class CommandHandler {
     }
 
     async handleCommand(cmd:string) {
-        if (App.isPromptingEnquirer)
+        if (App.isPromptActive)
         {
             return
         }

@@ -1,5 +1,5 @@
 ## AVAX Getting Started Guide with REPL
-Here's how to use ava-repl to easily get through the [Ava Getting Started Guide](https://docs.avax.network/v1.0/en/quickstart/ava-getting-started/). Try tab completion for assistance if you get stuck.
+Here's how to use ava-repl to easily get through the [Ava Getting Started Guide](https://docs.avax.network/v1.0/en/quickstart/). Try tab completion for assistance if you get stuck.
 
 First create a user.
 ```
@@ -34,7 +34,7 @@ Now we transfer some AVAX from X-Chain to our newly created P-Chain account P-fu
 
 To start we first export from X-Chain
 ```
-avm exportAVAX P-fuji1v2d6k4h0mc5lzt6kdy7j3mxed7n8qjfkcawf0y 20000
+avm exportAVAX P-fuji1v2d6k4h0mc5lzt6kdy7j3mxed7n8qjfkcawf0y 2000000
 ```
 
 Wait a few seconds until the ava-repl reports back Transaction accepted. Then we import to P-Chain

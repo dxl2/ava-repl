@@ -7,6 +7,7 @@ import { AvaClient, AvaKeystoreUser } from "./AvaClient";
 import { CommandHandler } from "./CommandHandler";
 import { AvaKeystoreCache } from "./AvaKeystoreCache";
 import { PendingTxService } from "./PendingTxService";
+import { CommandPromptHandler } from "./CommandPrompt";
 
 const AVA_KEYSTORE_USERNAME_ENV = "AVA_KEYSTORE_USERNAME"
 const AVA_KEYSTORE_PASSWORD_ENV = "AVA_KEYSTORE_PASSWORD"
@@ -18,7 +19,8 @@ export class App {
     static commandHandler: CommandHandler
     static pendingTxService = new PendingTxService()
     static isStandaloneMode = false
-    static isPromptingEnquirer = false
+    static isPromptActive = false
+    static promptHandler: CommandPromptHandler
 
     static async init(isStandalone=false) {
         if (this.ava) {

@@ -8,8 +8,32 @@ import { log } from "./AppLog";
 import { StringUtility } from "./StringUtility";
 import { AppRuntime } from "./AppRuntime";
 import "./Custom";
+import { CommandPromptHandler, CommandPrompt, CommandPromptQuestion } from "./CommandPrompt";
 
 let replServer
+
+export class CommandPromptHandlerImpl implements CommandPromptHandler {
+    constructor(private rl) {
+
+    }
+
+    async prompt(prompt: CommandPrompt): Promise<void> {
+        for (let q of prompt.questions) {
+            await this.promptQuestion(q)
+        }
+
+        this.rl.displayPrompt(true)
+    }
+
+    async promptQuestion(q: CommandPromptQuestion) {
+        return new Promise((resolve, reject) => {
+            this.rl.question(`${q.question}: `, (answer) => {
+                q.answer = answer
+                resolve()
+            })
+        })
+    }
+}
 
 export class AvaShell {
     static init() {
@@ -146,7 +170,7 @@ function isStandaloneInvocation()
 
 async function main() {
     let isStandalone = isStandaloneInvocation()
-    
+
     await App.init(isStandalone)
     AvaShell.init()
 
@@ -170,6 +194,8 @@ async function main() {
         completer: AvaShell.completer.bind(AvaShell)
     }
     replServer = repl.start(options);
+
+    App.promptHandler = new CommandPromptHandlerImpl(replServer)
 }
 
 main()

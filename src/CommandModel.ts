@@ -1,8 +1,8 @@
 import { FieldSpec } from "./CommandHandler";
 import { App } from "./App";
 import { BN } from "bn.js"
-const { prompt } = require('enquirer');
 import { log } from "./AppLog";
+import { CommandPromptQuestion, CommandPrompt } from "./CommandPrompt";
 
 export abstract class CommandModel {
     fields: FieldSpec[] = []
@@ -33,15 +33,10 @@ export abstract class CommandModel {
         return new Date(+this.fieldValueMap[key] * 1000)
     }
 
-    getEnquirerPrompt() {
-        let out = []
+    getCommandPrompt() {
+        let out = new CommandPrompt()
         for (let field of this.fields) {
-            out.push({
-                type: 'input',
-                name: field.name,
-                message: field.helpText,
-                initial: field.defaultValue
-            })
+            out.adduestion(new CommandPromptQuestion(field.helpText, field.name, field.defaultValue))
         }
 
         return out
@@ -66,26 +61,21 @@ export abstract class CommandModel {
 
     async promptValues() {
         try {
-            App.isPromptingEnquirer = true
-            let eps = this.getEnquirerPrompt()
-            let valueMap = {}
-            for (let ep of eps) {
-                let resp = await prompt(ep)
-                Object.assign(valueMap, resp)
-                // process.stdin.resume()
+            if (!App.promptHandler) {
+                console.error("Missing prompt handler")
+                return
             }
-            this.fieldValueMap = valueMap
-            // log.info("fieldValueMap", this.fieldValueMap)
+
+            App.isPromptActive = true
+            let p = this.getCommandPrompt()
+            await App.promptHandler.prompt(p)
+
+            this.fieldValueMap = p.getAnswerMap()
+            log.info("fieldValueMap", this.fieldValueMap)
             return true
         }
-        catch (error)
-        {
-            // user cancelled
-            return null
-        }
         finally {
-            process.stdin.resume()
-            App.isPromptingEnquirer = false
+            App.isPromptActive = false
         }
     }
 
@@ -97,6 +87,10 @@ export abstract class CommandModel {
             return
         }
         
-        await this.run()
+        try {
+            await this.run()
+        } catch (error) {
+            log.error(error)
+        }
     }
 }
