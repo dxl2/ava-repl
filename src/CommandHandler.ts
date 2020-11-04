@@ -10,7 +10,7 @@ import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
-import { AddValidatorCommand } from "./PlatformCommands";
+import { AddValidatorCommand, AddDelegatorCommand } from "./PlatformCommands";
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -395,7 +395,7 @@ export class PlatformCommandHandler {
         return res
     }
 
-    @command(new CommandSpec([new FieldSpec("subnetIds...")], "Get info about specified subnets. If no id specified, get info on all subnets"))
+    @command(new CommandSpec([new FieldSpec("subnetIds...", [])], "Get info about specified subnets. If no id specified, get info on all subnets"))
     async getSubnets(...subnetIds) {
         if (!subnetIds.length) {
             subnetIds = null
@@ -962,6 +962,8 @@ export class CommandHandler {
 
         // Register command models
         CommandRegistry.registerCommandModel(new AddValidatorCommand())
+        CommandRegistry.registerCommandModel(new AddDelegatorCommand())
+
     }
 
     getTopLevelCommands() {

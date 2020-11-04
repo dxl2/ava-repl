@@ -13,16 +13,34 @@ import { CommandPromptHandler, CommandPrompt, CommandPromptQuestion } from "./Co
 let replServer
 
 export class CommandPromptHandlerImpl implements CommandPromptHandler {
-    constructor(private rl) {
+    isPrompting
+    isCancelled
 
+    constructor(private rl) {
+        rl.on('SIGINT', () => {
+            if (this.isPrompting) {
+                console.log("Hit <enter> to cancel prompt")
+                this.isCancelled = true
+            }
+        });
     }
 
-    async prompt(prompt: CommandPrompt): Promise<void> {
+    async prompt(prompt: CommandPrompt): Promise<boolean> {
+        this.isPrompting = true
+        this.isCancelled = false
         for (let q of prompt.questions) {
             await this.promptQuestion(q)
+
+            if (this.isCancelled) {
+                break
+            }
         }
 
+        let out = this.isCancelled ? false : true
+        this.isCancelled = false
+        this.isPrompting = false
         this.rl.displayPrompt(true)
+        return out
     }
 
     async promptQuestion(q: CommandPromptQuestion) {

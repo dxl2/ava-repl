@@ -8,7 +8,7 @@ export class CommandPromptQuestion {
 export class CommandPrompt {
     questions: CommandPromptQuestion[] = []
 
-    adduestion(q: CommandPromptQuestion) {
+    addQuestion(q: CommandPromptQuestion) {
         this.questions.push(q)
     }
 
@@ -24,5 +24,5 @@ export class CommandPrompt {
 }
 
 export interface CommandPromptHandler {
-    prompt(prompt: CommandPrompt): Promise<void>
+    prompt(prompt: CommandPrompt): Promise<boolean>
 }

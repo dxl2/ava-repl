@@ -36,7 +36,7 @@ export abstract class CommandModel {
     getCommandPrompt() {
         let out = new CommandPrompt()
         for (let field of this.fields) {
-            out.adduestion(new CommandPromptQuestion(field.helpText, field.name, field.defaultValue))
+            out.addQuestion(new CommandPromptQuestion(field.helpText, field.name, field.defaultValue))
         }
 
         return out
@@ -50,9 +50,11 @@ export abstract class CommandModel {
             fieldStrs.push(field.toHelpString)
         }
 
-        if (fieldStrs.length) {
-            out += " " + fieldStrs.join(" ")
-        }
+        out += " (wizard)"
+
+        // if (fieldStrs.length) {
+        //     out += " " + fieldStrs.join(" ")
+        // }
 
         console.log(`${prefix}${out}`)
         console.log(`${prefix}- ${this.getHelp()}`)
@@ -68,7 +70,10 @@ export abstract class CommandModel {
 
             App.isPromptActive = true
             let p = this.getCommandPrompt()
-            await App.promptHandler.prompt(p)
+            let success = await App.promptHandler.prompt(p)
+            if (!success) {
+                return
+            }
 
             this.fieldValueMap = p.getAnswerMap()
             log.info("fieldValueMap", this.fieldValueMap)
