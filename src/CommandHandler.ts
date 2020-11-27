@@ -268,6 +268,24 @@ export class PlatformCommandHandler {
         return user
     }
 
+    @command(new CommandSpec([new FieldSpec("txId")], "Returns the specified transaction."))
+    async getTx(txid) {
+        let res = await App.ava.PChain().getTx(txid)
+        console.log(res)
+    }
+
+    @command(new CommandSpec([], "Get upper bound on the number of AVAX that exist, denominated in nAVAX"))
+    async getCurrentSupply() {
+        let res = await App.ava.PChain().getCurrentSupply()
+        console.log(res.toString(10))
+    }
+
+    @command(new CommandSpec([], "Returns the height of the last accepted block."))
+    async getHeight() {
+        let res = await App.ava.PChain().getHeight()
+        console.log(res.toString(10))
+    }
+
     @command(new CommandSpec([], "Get all the blockchains that exist (excluding the P-Chain)"))
     async getBlockchains() {
         let res = await App.ava.PChain().getBlockchains()
@@ -482,8 +500,8 @@ export class PlatformCommandHandler {
     //     log.info("transactionId", txId)
     // }
 
-    @command(new CommandSpec([new FieldSpec("subnetId"), new FieldSpec("weight"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
-    async addSubnetValidator(subnetId:string, weight: number, endTimeDays: number) {
+    @command(new CommandSpec([new FieldSpec("nodeId"), new FieldSpec("subnetId"), new FieldSpec("weight"), new FieldSpec("endTimeDays")], "Add a validator to a Subnet other than the Primary Network."))
+    async addSubnetValidator(nodeId:string, subnetId:string, weight: number, endTimeDays: number) {
         let now = moment().seconds(0).milliseconds(0)
         let startTime = now.clone().add(1, "minute")
         let endTime = now.clone().add(endTimeDays, "days")
@@ -496,7 +514,7 @@ export class PlatformCommandHandler {
         let txId = await App.ava.PChain().addSubnetValidator(
             user.username,
             user.password,
-            App.avaClient.nodeId,
+            nodeId,
             subnetId,
             startTime.toDate(),
             endTime.toDate(),

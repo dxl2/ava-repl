@@ -77,11 +77,11 @@ export class AddDelegatorCommand extends CommandModel {
         let res = await App.ava.PChain().addDelegator(
             user.username,
             user.password,
-            this.getString(AddValidatorCommand.NODE_ID_FIELD),
-            this.getDate(AddValidatorCommand.START_TIME_FIELD),
-            this.getDate(AddValidatorCommand.END_TIME_FIELD),
-            this.getBN(AddValidatorCommand.STAKE_AMOUNT_FIELD),
-            this.getString(AddValidatorCommand.REWARD_ADDRESS_FIELD))
+            this.getString(AddDelegatorCommand.NODE_ID_FIELD),
+            this.getDate(AddDelegatorCommand.START_TIME_FIELD),
+            this.getDate(AddDelegatorCommand.END_TIME_FIELD),
+            this.getBN(AddDelegatorCommand.STAKE_AMOUNT_FIELD),
+            this.getString(AddDelegatorCommand.REWARD_ADDRESS_FIELD))
 
         console.log(res)
     }
