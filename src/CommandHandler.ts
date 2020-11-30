@@ -11,7 +11,7 @@ import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
 import { AddValidatorCommand, AddDelegatorCommand } from "./PlatformCommands";
-import { CommandSpecManager as CommandSpecLoader } from "./CommandSpec";
+import { CommandSpecManager as CommandSpecLoader, CommandSpec2 } from "./CommandSpec";
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -649,6 +649,8 @@ export class AuthCommandHandler {
     @command(new CommandSpec([], "Stop the CPU profile that was previously started"))
     async stopCPUProfiler() {
         let res = await App.ava.Admin().stopCPUProfiler()
+
+        App.ava.PChain().createBlockchain()
         OutputPrinter.pprint(res)
     }
 }
@@ -1079,7 +1081,6 @@ export class CommandHandler {
         }
 
         let params = StringUtility.splitTokens(cmd)
-        console.error("ddx param", params)
 
         if (params.length < 1) {
             this.printHelpBasic()
@@ -1118,6 +1119,17 @@ export class CommandHandler {
             return
         }
 
+        let commandSpec = CommandRegistry.getCommandSpec(context, method)
+        if (commandSpec) {
+            if (commandSpec.requireKeystore() && !App.avaClient.keystoreCache.getActiveUser()) {
+                console.log("Missing user. Set active user with command: 'keystore login' or create user with 'keystore createUser'")
+                return
+            }
+
+            await commandSpec.run(params)
+            return
+        }
+
         let handler = CommandRegistry.handlerMap[context]
         if (!handler) {
             // throw new CommandError("Unknown context: " + context, "not_found")
@@ -1138,10 +1150,10 @@ export class CommandHandler {
             return
         }
         
-        let commandSpec = this.getCommandSpec(context, method)
-        if (commandSpec && !commandSpec.validateInput(...params)) {
+        let commandSpecLegacy = this.getCommandSpec(context, method)
+        if (commandSpecLegacy && !commandSpecLegacy.validateInput(...params)) {
             console.log("Invalid Arguments")
-            commandSpec.printUsage("Usage: ")
+            commandSpecLegacy.printUsage("Usage: ")
             return
         }
 

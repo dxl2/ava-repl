@@ -1,0 +1,54 @@
+{
+    "name": "createBlockchain",
+    "desc": "Create a new blockchain. Currently only supports the creation of new instances of the AVM and the Timestamp VM.",
+    "params": [
+        {
+            "name": "subnetID",
+            "desc": "`subnetID` is the ID of the Subnet that validates the new blockchain. The Subnet must exist and can’t be the Primary Network.",
+            "type": "string"
+        },
+        {
+            "name": "vmID",
+            "desc": "`vmID` is the ID of the Virtual Machine the blockchain runs. Can also be an alias of the Virtual Machine.",
+            "type": "string"
+        },
+        {
+            "name": "name",
+            "desc": "`name` is a human-readable name for the new blockchain. Not necessarily unique.",
+            "type": "string"
+        },
+        {
+            "name": "genesisData",
+            "desc": "`genesisData` is the byte representation of the genesis state of the new blockchain encoded in the format specified by the `encoding` parameter.",
+            "type": "string"
+        },
+        {
+            "name": "encoding",
+            "desc": "`encoding` specifies the format to use for `genesisData`. Can be either “cb58” or “hex”. Defaults to “cb58”. Virtual Machines should have a static API method named `buildGenesis` that can be used to generate `genesisData`",
+            "type": "string",
+            "optional": true
+        },
+        {
+            "name": "from",
+            "desc": "`from` are the addresses that you want to use for this operation. If omitted, uses any of your addresses as needed.",
+            "type": "[]string",
+            "optional": true
+        },
+        {
+            "name": "changeAddr",
+            "desc": "`changeAddr` is the address any change will be sent to. If omitted, change is sent to one of the addresses controlled by the user.",
+            "type": "string",
+            "optional": true
+        },
+        {
+            "name": "username",
+            "desc": "`username` is the user that pays the transaction fee. This user must have a sufficient number of the subnet’s control keys.",
+            "type": "string"
+        },
+        {
+            "name": "password",
+            "desc": "`password` is `username`‘s password.",
+            "type": "string"
+        }
+    ]
+}

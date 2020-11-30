@@ -20,6 +20,18 @@ export class CommandParamSpec {
     constructor(data) {
         Object.assign(this, data)
     }
+
+    sanitize(v) {
+        return v
+    }
+
+    get isUsername() {
+        return this.name == "username"
+    }
+
+    get isPassword() {
+        return this.name == "password"
+    }
 }
 
 export class CommandSpecManager {    
@@ -32,7 +44,7 @@ export class CommandSpecManager {
                 let specFilePath = contextDir + path.sep + specFile
                 let jf = new JsonFile(specFilePath)
                 let data = await jf.read()
-                let spec = new CommandSpec(context, data)
+                let spec = new CommandSpec2(context, data)
                 specs.push(spec)
             }
         }
@@ -41,7 +53,7 @@ export class CommandSpecManager {
     }
 }
 
-export class CommandSpec {
+export class CommandSpec2 {
     name:string
     desc:string
     params: CommandParamSpec[] = []
@@ -56,10 +68,75 @@ export class CommandSpec {
             if (param.name == "username" || param.name == "password") {
                 this.useKeystore = true
                 s.hidden = true
+                s.optional = true
             }
         
             this.params.push(s)
         }
+    }
+
+    get requiredParameterCount() {
+        let o = 0
+        for (let p of this.params) {
+            if (!p.optional) {
+                o++
+            }
+        }
+
+        return o
+    }
+
+    validateInput(rawValues) {
+        if (rawValues.length < this.requiredParameterCount) {
+            console.error("Insufficient number of parameters")
+            return null
+        }
+
+        let user = App.avaClient.keystoreCache.getActiveUser()
+
+        let sanitizedInput = []
+        for (let i=0; i<this.params.length; i++) {
+            let param = this.params[i]
+
+            if (param.isUsername) {
+                sanitizedInput.push(user.username)
+            } else if (param.isPassword) {
+                sanitizedInput.push(user.password)
+            }
+            else if (rawValues[i]) {
+                let sanitized = param.sanitize(rawValues[i])
+                if (!sanitized) {
+                    return null
+                }
+
+                sanitizedInput.push(sanitized)
+            } else {
+                sanitizedInput.push(undefined)
+            }
+        }
+
+        return sanitizedInput
+    }
+
+    getApiEndpoint() {
+        if (this.context == "avm") {
+            return App.ava.XChain()
+        } else if (this.context == "platform") {
+            return App.ava.PChain()
+        }
+    }
+
+    async run(params) {        
+        let data = this.validateInput(params)
+        if (!data) {            
+            this.printUsage()
+        }
+
+        // log.info("ddx sanitized", this.name, data)
+
+        let ep = this.getApiEndpoint()
+        let res = await ep[this.name](...data)
+        console.log(res)
     }
 
     requireKeystore() {

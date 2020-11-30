@@ -1,5 +1,6 @@
 import { CommandSpec, commandsMetadata } from "./CommandHandler";
 import { CommandModel } from "./CommandModel";
+import { CommandSpec2 } from "./CommandSpec";
 
 export class CommandHelp
 {
@@ -17,8 +18,8 @@ export class CommandRegistry
     static contextModelsMap: { [key: string]: CommandModel[] } = {}
     static contextModelNameMap: { [key: string]: { [key: string]: CommandModel }} = {}
 
-    static contextSpecMap: { [key: string]: CommandSpec[] } = {}
-    static contextSpecNameMap: { [key: string]: { [key: string]: CommandSpec }} = {}
+    static contextSpecMap: { [key: string]: CommandSpec2[] } = {}
+    static contextSpecNameMap: { [key: string]: { [key: string]: CommandSpec2 }} = {}
 
     static registerCommandHandler(contextName:string, handler)
     {
@@ -74,7 +75,7 @@ export class CommandRegistry
         return this.contextModelNameMap[context][name]
     }
 
-    static registerCommandSpec(spec: CommandSpec) {        
+    static registerCommandSpec(spec: CommandSpec2) {        
         let context = spec.context
 
         if (!this.contextSpecMap[context]) {
@@ -91,13 +92,13 @@ export class CommandRegistry
         // console.error("register spec", spec, this.contextSpecMap, this.contextSpecNameMap)
     }
 
-    // static getCommandSpec(context: string, name: string) {
-    //     if (!this.contextSpecNameMap[context]) {
-    //         return
-    //     }
+    static getCommandSpec(context: string, name: string) {
+        if (!this.contextSpecNameMap[context]) {
+            return
+        }
 
-    //     return this.contextSpecNameMap[context][name]
-    // }
+        return this.contextSpecNameMap[context][name]
+    }
 
     static getContextCommands(context) {
         let out = []
