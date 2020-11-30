@@ -26,8 +26,7 @@ export class StringUtility {
                 }
             } else if (glu.length) {
                 glu.push(part)
-            } else
-            {
+            } else {
                 out.push(part)
             }
         }

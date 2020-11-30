@@ -11,6 +11,7 @@ import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
 import { AddValidatorCommand, AddDelegatorCommand } from "./PlatformCommands";
+import { CommandSpecManager as CommandSpecLoader } from "./CommandSpec";
 
 const DEFAULT_KEY = "DEFAULT"
 
@@ -981,7 +982,14 @@ export class CommandHandler {
         // Register command models
         CommandRegistry.registerCommandModel(new AddValidatorCommand())
         CommandRegistry.registerCommandModel(new AddDelegatorCommand())
+    }
 
+    async init() {
+        let specs = await CommandSpecLoader.loadSpecs()
+
+        for (let spec of specs) {
+            CommandRegistry.registerCommandSpec(spec)
+        }
     }
 
     getTopLevelCommands() {
@@ -1025,7 +1033,11 @@ export class CommandHandler {
                 console.log(context)
             }
             
-            for (let model of CommandRegistry.getCommnadModels(context))
+            for (let spec of CommandRegistry.getCommandSpecs(context)) {
+                spec.printUsage("    ")
+            }
+
+            for (let model of CommandRegistry.getCommandModels(context))
             {
                 model.printUsage("    ")
             }
@@ -1057,7 +1069,7 @@ export class CommandHandler {
 
     getCommandSpec(context, method) {
         let commandId = `${context}_${method}`
-        return CommandRegistry.commandSpecMap[commandId]
+        return CommandRegistry.commandSpecLegacyMap[commandId]
     }
 
     async handleCommand(cmd:string) {
@@ -1067,6 +1079,7 @@ export class CommandHandler {
         }
 
         let params = StringUtility.splitTokens(cmd)
+        console.error("ddx param", params)
 
         if (params.length < 1) {
             this.printHelpBasic()

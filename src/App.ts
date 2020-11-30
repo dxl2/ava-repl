@@ -32,6 +32,7 @@ export class App {
         await this.connectAvaNode()
 
         this.commandHandler = new CommandHandler()
+        await this.commandHandler.init()
 
         this.pendingTxService.start()
     }

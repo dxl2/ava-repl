@@ -11,11 +11,14 @@ export class CommandHelp
 export class CommandRegistry
 {
     static handlerMap = {}
-    static commandSpecMap: { [key: string]: CommandSpec } = {}
+    static commandSpecLegacyMap: { [key: string]: CommandSpec } = {}
     static contextMethodMap: { [key: string]: string[] } = {}
 
     static contextModelsMap: { [key: string]: CommandModel[] } = {}
     static contextModelNameMap: { [key: string]: { [key: string]: CommandModel }} = {}
+
+    static contextSpecMap: { [key: string]: CommandSpec[] } = {}
+    static contextSpecNameMap: { [key: string]: { [key: string]: CommandSpec }} = {}
 
     static registerCommandHandler(contextName:string, handler)
     {
@@ -40,7 +43,7 @@ export class CommandRegistry
         for (let commandName in map) {
             map[commandName].name = commandName
             map[commandName].context = context
-            this.commandSpecMap[map[commandName].id] = map[commandName]
+            this.commandSpecLegacyMap[map[commandName].id] = map[commandName]
         }
     }
 
@@ -71,8 +74,37 @@ export class CommandRegistry
         return this.contextModelNameMap[context][name]
     }
 
+    static registerCommandSpec(spec: CommandSpec) {        
+        let context = spec.context
+
+        if (!this.contextSpecMap[context]) {
+            this.contextSpecMap[context] = []
+        }
+
+        this.contextSpecMap[context].push(spec)
+
+        if (!this.contextSpecNameMap[context]) {
+            this.contextSpecNameMap[context] = {}
+        }
+
+        this.contextSpecNameMap[context][spec.name] = spec
+        // console.error("register spec", spec, this.contextSpecMap, this.contextSpecNameMap)
+    }
+
+    // static getCommandSpec(context: string, name: string) {
+    //     if (!this.contextSpecNameMap[context]) {
+    //         return
+    //     }
+
+    //     return this.contextSpecNameMap[context][name]
+    // }
+
     static getContextCommands(context) {
         let out = []
+        for (let name in this.contextSpecNameMap[context]) {
+            out.push(name)
+        }
+
         for (let name in this.contextModelNameMap[context])
         {
             out.push(name)
@@ -92,13 +124,17 @@ export class CommandRegistry
         return contexts
     }
 
-    static getCommandSpec(context, method) {
+    static getCommandSpecLegacy(context, method) {
         let commandId = `${context}_${method}`
-        return CommandRegistry.commandSpecMap[commandId]
+        return CommandRegistry.commandSpecLegacyMap[commandId]
     }
 
-    static getCommnadModels(context)
+    static getCommandModels(context)
     {
         return this.contextModelsMap[context] || []
+    }
+
+    static getCommandSpecs(context) {
+        return this.contextSpecMap[context] || []
     }
 }
