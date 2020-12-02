@@ -649,8 +649,7 @@ export class AuthCommandHandler {
     @command(new CommandSpec([], "Stop the CPU profile that was previously started"))
     async stopCPUProfiler() {
         let res = await App.ava.Admin().stopCPUProfiler()
-
-        App.ava.PChain().createBlockchain()
+        
         OutputPrinter.pprint(res)
     }
 }

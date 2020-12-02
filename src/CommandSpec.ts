@@ -5,9 +5,11 @@ import { log } from "./AppLog";
 import * as fs from 'fs';
 import * as path from 'path';
 import { JsonFile } from "./JsonFile";
+import { ValueFormatter } from "./ValueFormatter";
 
 export enum CommandSpecParamType {
-    String = "string"
+    String = "string",
+    NumberArray = "Array<number>"
 }
 
 export class CommandParamSpec {
@@ -22,7 +24,12 @@ export class CommandParamSpec {
     }
 
     sanitize(v) {
-        return v
+        // log.info(`sanitize ${this.name} ${this.type} ${v}`)
+        if (this.type == CommandSpecParamType.String) {
+            return v
+        } else if (this.type == CommandSpecParamType.NumberArray) {
+            return ValueFormatter.asNumberArray(v)
+        }
     }
 
     get isUsername() {
@@ -95,6 +102,7 @@ export class CommandSpec2 {
         let user = App.avaClient.keystoreCache.getActiveUser()
 
         let sanitizedInput = []
+        let valueIndex = 0
         for (let i=0; i<this.params.length; i++) {
             let param = this.params[i]
 
@@ -103,13 +111,15 @@ export class CommandSpec2 {
             } else if (param.isPassword) {
                 sanitizedInput.push(user.password)
             }
-            else if (rawValues[i]) {
-                let sanitized = param.sanitize(rawValues[i])
+            else if (rawValues[valueIndex]) {
+                let sanitized = param.sanitize(rawValues[valueIndex])                
+
                 if (!sanitized) {
                     return null
                 }
 
                 sanitizedInput.push(sanitized)
+                valueIndex++
             } else {
                 sanitizedInput.push(undefined)
             }
@@ -126,10 +136,12 @@ export class CommandSpec2 {
         }
     }
 
-    async run(params) {        
+    async run(params) { 
+        // log.info("ddx params", params)       
         let data = this.validateInput(params)
         if (!data) {            
             this.printUsage()
+            return
         }
 
         // log.info("ddx sanitized", this.name, data)
@@ -175,7 +187,7 @@ export class CommandSpec2 {
         console.log(`${prefix}- ${this.desc}`)
         
         for (let p of this.visibleParams) {
-            console.log(`${prefix}${prefix}${p.desc}`)
+            console.log(`${prefix}${prefix}${p.name}: ${p.desc}`)
         }
 
         console.log()
