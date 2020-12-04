@@ -1,0 +1,17 @@
+{
+    "return": "boolean", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "This node's authorization token password, set through the CLI when the node was launched."
+        }, 
+        {
+            "type": "string", 
+            "name": "token", 
+            "desc": "An authorization token whose access should be revoked."
+        }
+    ], 
+    "name": "revokeToken", 
+    "desc": "Revokes an authorization token, removing all of its rights to access endpoints."
+}

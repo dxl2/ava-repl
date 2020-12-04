@@ -1,0 +1,17 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "This node's authorization token password, set through the CLI when the node was launched."
+        }, 
+        {
+            "type": "Array<string>", 
+            "name": "endpoints", 
+            "desc": "A list of endpoints that will be accessible using the generated token. If there's an element that is \"*\", this token can reach any endpoint."
+        }
+    ], 
+    "name": "newToken", 
+    "desc": "Creates a new authorization token that grants access to one or more API endpoints."
+}
