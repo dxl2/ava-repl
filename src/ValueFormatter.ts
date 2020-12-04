@@ -14,4 +14,8 @@ export class ValueFormatter {
 
         return out
     }
+
+    static asStringArray(v) {
+        return StringUtility.splitTokens(v)
+    }
 }

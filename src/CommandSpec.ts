@@ -9,7 +9,8 @@ import { ValueFormatter } from "./ValueFormatter";
 
 export enum CommandSpecParamType {
     String = "string",
-    NumberArray = "Array<number>"
+    NumberArray = "Array<number>",
+    StringArray = "Array<string>",
 }
 
 export class CommandParamSpec {
@@ -29,15 +30,13 @@ export class CommandParamSpec {
             return v
         } else if (this.type == CommandSpecParamType.NumberArray) {
             return ValueFormatter.asNumberArray(v)
+        }  else if (this.type == CommandSpecParamType.StringArray) {
+            return ValueFormatter.asStringArray(v)
+        } 
+        
+        else {
+            throw new Error ("Unknown type:" + this.type)
         }
-    }
-
-    get isUsername() {
-        return this.name == "username"
-    }
-
-    get isPassword() {
-        return this.name == "password"
     }
 }
 
@@ -48,6 +47,7 @@ export class CommandSpecManager {
         for (let context of fs.readdirSync(specDir)) {
             let contextDir = specDir + path.sep + context
             for (let specFile of fs.readdirSync(contextDir)) {
+                // log.info(`loading ${contextDir} ${specFile}`)
                 let specFilePath = contextDir + path.sep + specFile
                 let jf = new JsonFile(specFilePath)
                 let data = await jf.read()
@@ -64,6 +64,7 @@ export class CommandSpec2 {
     name:string
     desc:string
     params: CommandParamSpec[] = []
+    nameParamMap: {[key:string]: CommandParamSpec} = {}
     useKeystore = false
 
     constructor(public context, data) {
@@ -72,13 +73,19 @@ export class CommandSpec2 {
         this.params = []
         for (let param of data.params) {
             let s = new CommandParamSpec(param)
-            if (param.name == "username" || param.name == "password") {
-                this.useKeystore = true
-                s.hidden = true
-                s.optional = true
-            }
-        
             this.params.push(s)
+            this.nameParamMap[param.name] = param
+        }
+
+        // check if this param requires keystore
+        if (this.nameParamMap["username"] && this.nameParamMap["password"]) {
+            this.useKeystore = true
+
+            this.nameParamMap["username"].hidden = true
+            this.nameParamMap["username"].optional = true
+            
+            this.nameParamMap["password"].hidden = true
+            this.nameParamMap["password"].optional = true
         }
     }
 
@@ -93,6 +100,14 @@ export class CommandSpec2 {
         return o
     }
 
+    isKeystoreUserParam(param:CommandParamSpec) {
+        return this.useKeystore && param.name == "username"
+    }
+
+    isKeystorePasswordParam(param:CommandParamSpec) {
+        return this.useKeystore && param.name == "password"
+    }
+
     validateInput(rawValues) {
         if (rawValues.length < this.requiredParameterCount) {
             console.error("Insufficient number of parameters")
@@ -101,20 +116,23 @@ export class CommandSpec2 {
 
         let user = App.avaClient.keystoreCache.getActiveUser()
 
+        // console.log("raw", rawValues)
         let sanitizedInput = []
         let valueIndex = 0
         for (let i=0; i<this.params.length; i++) {
             let param = this.params[i]
+            // console.log(param)
 
-            if (param.isUsername) {
+            if (this.isKeystoreUserParam(param)) {
                 sanitizedInput.push(user.username)
-            } else if (param.isPassword) {
+            } else if (this.isKeystorePasswordParam(param)) {
                 sanitizedInput.push(user.password)
             }
             else if (rawValues[valueIndex]) {
-                let sanitized = param.sanitize(rawValues[valueIndex])                
+                let sanitized = param.sanitize(rawValues[valueIndex])
 
                 if (!sanitized) {
+                    console.error(`Invalid input ${rawValues[valueIndex]} for field ${param.name}`)
                     return null
                 }
 
@@ -133,13 +151,19 @@ export class CommandSpec2 {
             return App.ava.XChain()
         } else if (this.context == "platform") {
             return App.ava.PChain()
+        } else if (this.context == "auth") {
+            return App.ava.Auth()
+        }
+        else {
+            throw new Error("Unknown endpoint: " + this.context)
         }
     }
 
     async run(params) { 
-        // log.info("ddx params", params)       
+        // log.info("ddx params", params)
         let data = this.validateInput(params)
-        if (!data) {            
+        if (!data) {          
+            console.error("Error: invalid input")
             this.printUsage()
             return
         }
@@ -184,10 +208,10 @@ export class CommandSpec2 {
         }
 
         console.log(`${prefix}${out}`)
-        console.log(`${prefix}- ${this.desc}`)
+        console.log(`${prefix}+ ${this.desc}`)
         
         for (let p of this.visibleParams) {
-            console.log(`${prefix}${prefix}${p.name}: ${p.desc}`)
+            console.log(`${prefix}${prefix}- ${p.name}: ${p.desc}`)
         }
 
         console.log()

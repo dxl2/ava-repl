@@ -211,6 +211,7 @@ export class KeystoreCommandHandler {
     @command(new CommandSpec([new FieldSpec("username"), new FieldSpec("password")], "Delete a user"))
     async deleteUser(username, password) {
         await App.ava.NodeKeys().deleteUser(username, password)
+
         App.avaClient.keystoreCache.removeUser(username)
         console.log(`Deleted user: ${username}`)
     }
@@ -940,7 +941,8 @@ export enum CommandContext {
     Platform = "platform",
     Health = "health",
     Shell = "shell",
-    Admin = "admin"
+    Admin = "admin",
+    Auth = "auth"
 }
 
 const META_COMMANDS = [
@@ -999,7 +1001,7 @@ export class CommandHandler {
             out.push(cmd)
         }
 
-        for (let context in CommandRegistry.handlerMap) {
+        for (let context of CommandRegistry.getAllContexts()) {
             out.push(context)
         }
 
@@ -1043,17 +1045,20 @@ export class CommandHandler {
                 model.printUsage("    ")
             }
 
-            let methods = CommandRegistry.contextMethodMap[context].slice()
-            methods.sort()
+            let methodsOrig = CommandRegistry.contextMethodMap[context]
+            if (methodsOrig) {
+                let methods = methodsOrig.slice()
+                methods.sort()
 
-            for (let method of methods) {
-                let commandSpec = this.getCommandSpec(context, method)
-                if (commandSpec) {
-                    commandSpec.printUsage("    ")
-                } else {
-                    console.log(`    ${method}`)
-                    console.log()
-                }                
+                for (let method of methods) {
+                    let commandSpec = this.getCommandSpec(context, method)
+                    if (commandSpec) {
+                        commandSpec.printUsage("    ")
+                    } else {
+                        console.log(`    ${method}`)
+                        console.log()
+                    }                
+                }
             }
 
             console.log("")
@@ -1065,7 +1070,8 @@ export class CommandHandler {
     }
 
     isContext(context) {
-        return CommandRegistry.handlerMap[context]
+        let allContexts = CommandRegistry.getAllContexts()
+        return allContexts.includes(context)
     }
 
     getCommandSpec(context, method) {

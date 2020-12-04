@@ -1,25 +1,57 @@
 # -*- coding: utf-8 -*-
 
-import re, json
+import re, json, os
 
 S = '''
-/**
-     * Creates a new blockchain.
+    /**
+     * Creates a new authorization token that grants access to one or more API endpoints.
      *
-     * @param username The username of the Keystore user that controls the new account
-     * @param password The password of the Keystore user that controls the new account
-     * @param subnetID Optional. Either a {@link https://github.com/feross/buffer|Buffer} or an cb58 serialized string for the SubnetID or its alias.
-     * @param vmID The ID of the Virtual Machine the blockchain runs. Can also be an alias of the Virtual Machine.
-     * @param FXIDs The ids of the FXs the VM is running.
-     * @param name A human-readable name for the new blockchain
-     * @param genesis The base 58 (with checksum) representation of the genesis state of the new blockchain. Virtual Machines should have a static API method named buildGenesis that can be used to generate genesisData.
+     * @param password This node's authorization token password, set through the CLI when the node was launched.
+     * @param endpoints A list of endpoints that will be accessible using the generated token. If there's an element that is "*", this token can reach any endpoint.
      *
-     * @returns Promise for the unsigned transaction to create this blockchain. Must be signed by a sufficient number of the Subnet’s control keys and by the account paying the transaction fee.
+     * @returns Returns a Promise<string> containing the authorization token.
      */
-    createBlockchain: (username: string, password: string, subnetID: Buffer | string, vmID: string, fxIDs: Array<number>, name: string, genesis: string) => Promise<string>;
+    newToken: (password: string, endpoints: Array<string>) => Promise<string>;
+    /**
+     * Revokes an authorization token, removing all of its rights to access endpoints.
+     *
+     * @param password This node's authorization token password, set through the CLI when the node was launched.
+     * @param token An authorization token whose access should be revoked.
+     *
+     * @returns Returns a Promise<boolean> indicating if a token was successfully revoked.
+     */
+    revokeToken: (password: string, token: string) => Promise<boolean>;
+    /**
+     * Change this node's authorization token password. **Any authorization tokens created under an old password will become invalid.**
+     *
+     * @param oldPassword This node's authorization token password, set through the CLI when the node was launched.
+     * @param newPassword A new password for this node's authorization token issuance.
+     *
+     * @returns Returns a Promise<boolean> indicating if the password was successfully changed.
+     */
+    changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
 '''
 
 class TypeParser(object):
+    def __init__(self, ep):
+        self.endpoint = ep
+
+    def parseBlock(self, b):
+        parts = b.split("/**")
+        out = []
+        for p in parts:
+            p = p.strip()
+            if not p: 
+                continue
+
+            f = self.parseFunction(p)
+            # print f
+            # print("---")
+            out.append(f)
+
+        return out
+
+
     def parseFunction(self, rawLines):
         commentLines = []
         lines = []
@@ -82,8 +114,9 @@ class TypeParser(object):
         rawDec = " ".join(lines)
 
         regex = "(.+?): \((.+)\) => (.+)"
-        res = re.search(regex, rawDec)
+        res = re.search(regex, rawDec)        
 
+        # parse parameters
         params = res.group(2)
         parts = params.split(",")
         typeList = []
@@ -114,6 +147,14 @@ class TypeParser(object):
         # name is function name
         out["name"] = res.group(1)
 
+        # parse return type
+        ret = res.group(3)
+        m = re.match("Promise<(.+?)>", ret)
+        if m:
+            ret = m.group(1)
+        
+        out["return"] = ret
+
 
         # parts = rawDec.split("=>")
 
@@ -137,10 +178,22 @@ class TypeParser(object):
 
 
 def main():
-    out = TypeParser().parseFunction(S)
-    s = json.dumps(out, indent=4)
-    with open("/tmp/test.json", "w") as f:
-        f.write(s)
+    EP = "auth"
+    out = TypeParser(EP).parseBlock(S)
+
+    currentDir = os.path.dirname(os.path.abspath(__file__))
+    specDir = os.path.join(currentDir, "..", "src", "specs", EP)
+    if not os.path.exists(specDir):
+        os.mkdir(specDir)
+
+    for f in out:
+        # print f
+        specPath = os.path.join(specDir, f["name"] + ".json")
+        print("output %s" % specPath)
+        s = json.dumps(f, indent=4)
+        with open(specPath, "w") as f:
+            f.write(s)
+        
 
 if __name__ == "__main__":
     main()            

@@ -120,7 +120,19 @@ export class CommandRegistry
 
     static getAllContexts()
     {
-        let contexts = Object.keys(CommandRegistry.contextMethodMap)
+        let s = new Set<string>()
+        for (let c of Object.keys(CommandRegistry.contextMethodMap))
+        {
+            s.add(c)
+        }
+
+        for (let c of Object.keys(CommandRegistry.contextSpecMap))
+        {
+            s.add(c)
+        }
+
+
+        let contexts = Array.from(s)
         contexts.sort()
         return contexts
     }
