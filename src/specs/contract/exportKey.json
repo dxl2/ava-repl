@@ -1,0 +1,22 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The name of the user with the private key"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password used to decrypt the private key"
+        }, 
+        {
+            "type": "string", 
+            "name": "address", 
+            "desc": "The address whose private key should be exported"
+        }
+    ], 
+    "name": "exportKey", 
+    "desc": "Exports the private key for an address."
+}

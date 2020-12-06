@@ -11,6 +11,7 @@ export enum CommandSpecParamType {
     String = "string",
     NumberArray = "Array<number>",
     StringArray = "Array<string>",
+    BigNumber = "BN"
 }
 
 export class CommandParamSpec {
@@ -30,9 +31,11 @@ export class CommandParamSpec {
             return v
         } else if (this.type == CommandSpecParamType.NumberArray) {
             return ValueFormatter.asNumberArray(v)
-        }  else if (this.type == CommandSpecParamType.StringArray) {
+        } else if (this.type == CommandSpecParamType.StringArray) {
             return ValueFormatter.asStringArray(v)
-        } 
+        } else if (this.type == CommandSpecParamType.BigNumber) {
+            return new BN(v)
+        }
         
         else {
             throw new Error ("Unknown type:" + this.type)
@@ -74,7 +77,7 @@ export class CommandSpec2 {
         for (let param of data.params) {
             let s = new CommandParamSpec(param)
             this.params.push(s)
-            this.nameParamMap[param.name] = param
+            this.nameParamMap[param.name] = s
         }
 
         // check if this param requires keystore
@@ -92,6 +95,7 @@ export class CommandSpec2 {
     get requiredParameterCount() {
         let o = 0
         for (let p of this.params) {
+            // log.info("ddx", p)
             if (!p.optional) {
                 o++
             }
@@ -109,14 +113,16 @@ export class CommandSpec2 {
     }
 
     validateInput(rawValues) {
+        // log.info("ddx", this)
         if (rawValues.length < this.requiredParameterCount) {
-            console.error("Insufficient number of parameters")
+            console.error(`Error: Requires at least ${this.requiredParameterCount} parameters`)
             return null
         }
 
         let user = App.avaClient.keystoreCache.getActiveUser()
 
         // console.log("raw", rawValues)
+        // console.log("isKeystore", this.useKeystore)
         let sanitizedInput = []
         let valueIndex = 0
         for (let i=0; i<this.params.length; i++) {
@@ -153,6 +159,8 @@ export class CommandSpec2 {
             return App.ava.PChain()
         } else if (this.context == "auth") {
             return App.ava.Auth()
+        } else if (this.context == "contract") {
+            return App.ava.CChain()
         }
         else {
             throw new Error("Unknown endpoint: " + this.context)
@@ -160,7 +168,6 @@ export class CommandSpec2 {
     }
 
     async run(params) { 
-        // log.info("ddx params", params)
         let data = this.validateInput(params)
         if (!data) {          
             console.error("Error: invalid input")

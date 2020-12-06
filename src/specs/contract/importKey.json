@@ -1,0 +1,22 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The name of the user to store the private key"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password that unlocks the user"
+        }, 
+        {
+            "type": "string", 
+            "name": "privateKey", 
+            "desc": "A string representing the private key in the vm's format"
+        }
+    ], 
+    "name": "importKey", 
+    "desc": "Give a user control over an address by providing the private key that controls the address."
+}

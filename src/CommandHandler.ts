@@ -938,6 +938,7 @@ export enum CommandContext {
     Info = "info",
     Keystore = "keystore",
     AVM = "avm",
+    Contract = "contract",
     Platform = "platform",
     Health = "health",
     Shell = "shell",

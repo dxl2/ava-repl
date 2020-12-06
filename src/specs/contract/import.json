@@ -1,0 +1,27 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The Keystore user that controls the account specified in `to`"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "to", 
+            "desc": "The address of the account the asset is sent to."
+        }, 
+        {
+            "type": "string", 
+            "name": "sourceChain", 
+            "desc": "The chainID where the funds are coming from. Ex: \"X\""
+        }
+    ], 
+    "name": "import", 
+    "desc": "Send ANT (Avalanche Native Token) assets including AVAX from an account on the X-Chain to an address on the C-Chain. This transaction must be signed with the key of the account that the asset is sent from and which pays the transaction fee. by calling issueTx."
+}

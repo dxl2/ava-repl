@@ -1,0 +1,27 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The Keystore user that controls the X-Chain account specified in `to`"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "to", 
+            "desc": "The account on the X-Chain to send the AVAX to."
+        }, 
+        {
+            "type": "BN", 
+            "name": "amount", 
+            "desc": "Amount of AVAX to export as a {@link https://github.com/indutny/bn.js/|BN}"
+        }
+    ], 
+    "name": "exportAVAX", 
+    "desc": "Send AVAX from the C-Chain to an account on the X-Chain. After calling this method, you must call the X-Chain\u2019s importAVAX method to complete the transfer."
+}

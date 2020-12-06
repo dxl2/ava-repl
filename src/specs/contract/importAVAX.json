@@ -1,0 +1,27 @@
+{
+    "return": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The Keystore user that controls the account specified in `to`"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "to", 
+            "desc": "The address of the account the AVAX is sent to. This must be the same as the to"
+        }, 
+        {
+            "type": "string", 
+            "name": "sourceChain", 
+            "desc": "The chainID where the funds are coming from."
+        }
+    ], 
+    "name": "importAVAX", 
+    "desc": "Send AVAX from an account on the X-Chain to an address on the C-Chain. This transaction must be signed with the key of the account that the AVAX is sent from and which pays the transaction fee. argument in the corresponding call to the X-Chain\u2019s exportAVAX by calling issueTx."
+}
