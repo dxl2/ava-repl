@@ -46,7 +46,7 @@ export class CommandParamSpec {
 export class CommandSpecManager {    
     static async loadSpecs() {
         let specs = []
-        const specDir = path.resolve(__dirname, 'specs')
+        const specDir = path.resolve(__dirname, "..", "specs")
         for (let context of fs.readdirSync(specDir)) {
             let contextDir = specDir + path.sep + context
             for (let specFile of fs.readdirSync(contextDir)) {

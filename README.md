@@ -71,7 +71,7 @@ It supports tab completion, context switching, Keystore credentials caching, tra
 ## Build Instructions
 ```
 npm install
-./node_modules/typescript/bin/tsc
+npm run build
 node build/AvaShell.js
 ```
 

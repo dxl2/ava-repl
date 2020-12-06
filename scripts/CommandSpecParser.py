@@ -182,7 +182,7 @@ def main():
     out = TypeParser(EP).parseBlock(S)
 
     currentDir = os.path.dirname(os.path.abspath(__file__))
-    specDir = os.path.join(currentDir, "..", "src", "specs", EP)
+    specDir = os.path.join(currentDir, "..", "specs", EP)
     if not os.path.exists(specDir):
         os.mkdir(specDir)
 
