@@ -109,8 +109,10 @@ X-5DSRK4P5vtknsCWfqUoFjsXdHmMLsqK5B
 Keystore credential can also be set as environment variables `AVA_KEYSTORE_USERNAME` and `AVA_KEYSTORE_PASSWORD`.
 
 ## CLI Mode Usage
-To invoke in CLI mode, simply pass the along the commandline. Make sure to set the environment variables for the Keystore user.
+To invoke ava-repl in CLI mode, simply pass the along the commandline. Make sure to set the environment variables for the Keystore user. Note that you first need to build the tool.
 `build/AvaShell.js avm checkTx <tx>`
+
+For convenience, the `arepl` CLI wrapper is provided under `<source_root>/bin`. Add this directory to your $PATH, and source arepl_bash_complete.sh to enable Bash autocompletion.
 
 ## Custom Commands
 You can easily add your own context and commands to the REPL shell. See Custom.ts for an example.

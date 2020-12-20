@@ -210,7 +210,7 @@ export class CommandSpec2 {
         return out
     }
 
-    printUsage(prefix = "") {
+    printUsage(prefix = "", noOutput=false) {
         let out = `${this.name}`
         let fieldNames = []
 
@@ -226,8 +226,9 @@ export class CommandSpec2 {
             out += " " + fieldNames.join(" ")
         }
 
-        console.log(`${prefix}${out}`)
-        console.log(`${prefix}+ ${this.desc}`)
+        let outLines = []
+        outLines.push(`${prefix}${out}`)
+        outLines.push(`${prefix}+ ${this.desc}`)
         
         for (let p of this.visibleParams) {
             let meta = ""
@@ -235,9 +236,16 @@ export class CommandSpec2 {
                 meta = " (optional)"
             }
 
-            console.log(`${prefix}${prefix}- ${p.name}${meta}: ${p.desc}`)
+            outLines.push(`${prefix}${prefix}- ${p.name}${meta}: ${p.desc}`)
         }
 
-        console.log()
+        outLines.push("")
+
+        let fout = outLines.join("\n")
+        if (!noOutput) {
+            console.log(fout)
+        }
+
+        return fout
     }
 }

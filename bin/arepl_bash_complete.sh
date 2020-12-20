@@ -1,10 +1,3 @@
-declare -A MYMAP
-MYMAP[foo]=bar
-MYMAP[a b]="bar1 bar2"
-
-echo ${MYMAP[foo]}
-echo ${MYMAP[a b]}
-
 SCRIPT=`realpath $_`
 SCRIPTPATH=`dirname $SCRIPT`
 source "${SCRIPTPATH}/arepl_bash_complete_data.sh"
@@ -19,10 +12,6 @@ contains() {
 
     return 0
 }
-
-
-contains "${ALL_CONTEXT}" "avm"
-echo "res $?"
 
 arepl_completions()
 {    
