@@ -3,33 +3,6 @@
 import re, json, os
 
 S = '''
-    /**
-     * Creates a new authorization token that grants access to one or more API endpoints.
-     *
-     * @param password This node's authorization token password, set through the CLI when the node was launched.
-     * @param endpoints A list of endpoints that will be accessible using the generated token. If there's an element that is "*", this token can reach any endpoint.
-     *
-     * @returns Returns a Promise<string> containing the authorization token.
-     */
-    newToken: (password: string, endpoints: Array<string>) => Promise<string>;
-    /**
-     * Revokes an authorization token, removing all of its rights to access endpoints.
-     *
-     * @param password This node's authorization token password, set through the CLI when the node was launched.
-     * @param token An authorization token whose access should be revoked.
-     *
-     * @returns Returns a Promise<boolean> indicating if a token was successfully revoked.
-     */
-    revokeToken: (password: string, token: string) => Promise<boolean>;
-    /**
-     * Change this node's authorization token password. **Any authorization tokens created under an old password will become invalid.**
-     *
-     * @param oldPassword This node's authorization token password, set through the CLI when the node was launched.
-     * @param newPassword A new password for this node's authorization token issuance.
-     *
-     * @returns Returns a Promise<boolean> indicating if the password was successfully changed.
-     */
-    changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
 '''
 
 class TypeParser(object):
@@ -111,36 +84,48 @@ class TypeParser(object):
         return out
 
     def parseDeclaration(self, out, lines):
+        # print("ddx parseDecl: %s", lines)
         rawDec = " ".join(lines)
 
-        regex = "(.+?): \((.+)\) => (.+)"
+        regex = "(.+?): \((.*?)\) => (.+)"
         res = re.search(regex, rawDec)        
 
         # parse parameters
         params = res.group(2)
-        parts = params.split(",")
-        typeList = []
-        for part in parts:
-            tokens = part.split(":")
-            name = tokens[0].strip()
-            t = tokens[1].strip()
+        if params:
+            parts = params.split(",")        
+            typeList = []
+            optionalList = []
+            for part in parts:
+                tokens = part.split(":")
+                name = tokens[0].strip()
+                
+                t = tokens[1].strip()
 
-            # If a param has more than 1 type, see if user inputtable type is supported.
-            altTypes = map(lambda t : t.strip(), t.split("|"))
-            # print("altTypes", altTypes)
-            if len(altTypes) > 1:
-                if not "string" in altTypes:
-                    print("Unknown type: %s" % altTypes)
-                    raise "Unknown types"
-                t = "string"
+                # If a param has more than 1 type, see if user inputtable type is supported.
+                altTypes = map(lambda t : t.strip(), t.split("|"))
+                # print("altTypes", altTypes)
+                if len(altTypes) > 1:
+                    if not "string" in altTypes:
+                        print("Unknown type: %s" % altTypes)
+                        raise "Unknown types"
+                    t = "string"
 
-            typeList.append(t)
-        
-        if len(typeList) != len(out["params"]):
-            raise "param mismatch"
-        
-        for i in range(len(typeList)):
-            out["params"][i]["type"] = typeList[i]        
+                typeList.append(t)
+
+                isOptional = False
+                if name.strip().endswith("?"):
+                    isOptional = True
+                optionalList.append(isOptional)
+            
+            if len(typeList) != len(out["params"]):
+                raise "param mismatch"
+            
+            for i in range(len(typeList)):
+                out["params"][i]["type"] = typeList[i]
+
+                if optionalList[i]:
+                    out["params"][i]["optional"] = optionalList[i]
 
         # print(res.groups())
 
@@ -153,7 +138,8 @@ class TypeParser(object):
         if m:
             ret = m.group(1)
         
-        out["return"] = ret
+        ret = re.sub(";", "", ret)
+        out["output"] = ret
 
 
         # parts = rawDec.split("=>")
@@ -178,7 +164,7 @@ class TypeParser(object):
 
 
 def main():
-    EP = "auth"
+    EP = "contract"
     out = TypeParser(EP).parseBlock(S)
 
     currentDir = os.path.dirname(os.path.abspath(__file__))

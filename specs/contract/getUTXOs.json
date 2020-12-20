@@ -1,0 +1,30 @@
+{
+    "output": "{ numFetched: number utxos endIndex: Index }", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "addresses", 
+            "desc": "An array of addresses as cb58 strings or addresses as {@link https://github.com/feross/buffer|Buffer}s"
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "sourceChain", 
+            "desc": "A string for the chain to look for the UTXO's. Default is to use this chain, but if exported UTXOs exist"
+        }, 
+        {
+            "optional": true, 
+            "type": "number", 
+            "name": "limit", 
+            "desc": "Optional. Returns at most [limit] addresses. If [limit] == 0 or > [maxUTXOsToFetch], fetches up to [maxUTXOsToFetch]."
+        }, 
+        {
+            "optional": true, 
+            "type": "Index", 
+            "name": "startIndex", 
+            "desc": "Optional. [StartIndex] defines where to start fetching UTXOs (for pagination.)"
+        }
+    ], 
+    "name": "getUTXOs", 
+    "desc": "Retrieves the UTXOs related to the addresses provided from the node's `getUTXOs` method. from other chains, this can used to pull them instead. UTXOs fetched are from addresses equal to or greater than [StartIndex.Address] For address [StartIndex.Address], only UTXOs with IDs greater than [StartIndex.Utxo] will be returned."
+}

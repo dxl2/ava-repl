@@ -1,0 +1,6 @@
+{
+    "output": "string", 
+    "params": [], 
+    "name": "getBlockchainAlias", 
+    "desc": "Gets the alias for the blockchainID if it exists, otherwise returns `undefined`."
+}

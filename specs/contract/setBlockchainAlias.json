@@ -1,0 +1,12 @@
+{
+    "output": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "alias", 
+            "desc": "The alias for the blockchainID."
+        }
+    ], 
+    "name": "setBlockchainAlias", 
+    "desc": "Sets the alias for the blockchainID."
+}

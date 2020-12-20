@@ -1,0 +1,12 @@
+{
+    "output": "any", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "assetID", 
+            "desc": "Either a {@link https://github.com/feross/buffer|Buffer} or an b58 serialized string for the AssetID or its alias."
+        }
+    ], 
+    "name": "getAssetDescription", 
+    "desc": "Retrieves an assets name and symbol."
+}

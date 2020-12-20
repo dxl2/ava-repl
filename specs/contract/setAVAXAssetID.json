@@ -1,0 +1,12 @@
+{
+    "output": "void", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "avaxAssetID", 
+            "desc": "A cb58 string or Buffer representing the AVAX AssetID"
+        }
+    ], 
+    "name": "setAVAXAssetID", 
+    "desc": "Overrides the defaults and sets the cache to a specific AVAX AssetID"
+}

@@ -1,0 +1,6 @@
+{
+    "output": "string", 
+    "params": [], 
+    "name": "getBlockchainID", 
+    "desc": "Gets the blockchainID and returns it."
+}

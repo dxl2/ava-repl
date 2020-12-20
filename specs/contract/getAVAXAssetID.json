@@ -1,0 +1,13 @@
+{
+    "output": "Buffer", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "boolean", 
+            "name": "refresh", 
+            "desc": "This function caches the response. Refresh = true will bust the cache."
+        }
+    ], 
+    "name": "getAVAXAssetID", 
+    "desc": "Fetches the AVAX AssetID and returns it in a Promise."
+}

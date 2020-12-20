@@ -1,0 +1,6 @@
+{
+    "output": "BN", 
+    "params": [], 
+    "name": "getTxFee", 
+    "desc": "Gets the tx fee for this chain."
+}

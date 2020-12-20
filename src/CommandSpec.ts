@@ -7,7 +7,7 @@ import * as path from 'path';
 import { JsonFile } from "./JsonFile";
 import { ValueFormatter } from "./ValueFormatter";
 
-export enum CommandSpecParamType {
+export enum CommandSpecDataType {
     String = "string",
     NumberArray = "Array<number>",
     StringArray = "Array<string>",
@@ -27,13 +27,13 @@ export class CommandParamSpec {
 
     sanitize(v) {
         // log.info(`sanitize ${this.name} ${this.type} ${v}`)
-        if (this.type == CommandSpecParamType.String) {
+        if (this.type == CommandSpecDataType.String) {
             return v
-        } else if (this.type == CommandSpecParamType.NumberArray) {
+        } else if (this.type == CommandSpecDataType.NumberArray) {
             return ValueFormatter.asNumberArray(v)
-        } else if (this.type == CommandSpecParamType.StringArray) {
+        } else if (this.type == CommandSpecDataType.StringArray) {
             return ValueFormatter.asStringArray(v)
-        } else if (this.type == CommandSpecParamType.BigNumber) {
+        } else if (this.type == CommandSpecDataType.BigNumber) {
             return new BN(v)
         }
         
@@ -66,6 +66,7 @@ export class CommandSpecManager {
 export class CommandSpec2 {
     name:string
     desc:string
+    output:CommandSpecDataType
     params: CommandParamSpec[] = []
     nameParamMap: {[key:string]: CommandParamSpec} = {}
     useKeystore = false
@@ -89,6 +90,14 @@ export class CommandSpec2 {
             
             this.nameParamMap["password"].hidden = true
             this.nameParamMap["password"].optional = true
+        }
+    }
+
+    formatOutput(o) {
+        if (this.output == CommandSpecDataType.BigNumber) {
+            return o.toString(10)
+        } else {
+            return o
         }
     }
 
@@ -179,6 +188,9 @@ export class CommandSpec2 {
 
         let ep = this.getApiEndpoint()
         let res = await ep[this.name](...data)
+
+        res = this.formatOutput(res)
+
         console.log(res)
     }
 
@@ -218,7 +230,12 @@ export class CommandSpec2 {
         console.log(`${prefix}+ ${this.desc}`)
         
         for (let p of this.visibleParams) {
-            console.log(`${prefix}${prefix}- ${p.name}: ${p.desc}`)
+            let meta = ""
+            if (p.optional) {
+                meta = " (optional)"
+            }
+
+            console.log(`${prefix}${prefix}- ${p.name}${meta}: ${p.desc}`)
         }
 
         console.log()

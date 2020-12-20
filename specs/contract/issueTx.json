@@ -1,0 +1,12 @@
+{
+    "output": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "tx", 
+            "desc": "A string, {@link https://github.com/feross/buffer|Buffer}, or [[Tx]] representing a transaction"
+        }
+    ], 
+    "name": "issueTx", 
+    "desc": "Calls the node's issueTx method from the API and returns the resulting transaction ID as a string."
+}

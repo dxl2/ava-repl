@@ -1,0 +1,6 @@
+{
+    "output": "BN", 
+    "params": [], 
+    "name": "getDefaultTxFee", 
+    "desc": "Gets the default tx fee for this chain."
+}

@@ -1,0 +1,13 @@
+{
+    "output": "boolean", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "blockchainId", 
+            "desc": "BlockchainID to assign, if none, uses the default based on networkID."
+        }
+    ], 
+    "name": "refreshBlockchainID", 
+    "desc": "Refresh blockchainID, and if a blockchainID is passed in, use that."
+}
