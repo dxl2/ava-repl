@@ -10,7 +10,6 @@ import { PendingTxState } from "./PendingTxService";
 import * as moment from 'moment';
 import { JsonFile } from "./JsonFile";
 import { CommandRegistry } from "./CommandRegistry";
-import { AddValidatorCommand, AddDelegatorCommand } from "./PlatformCommands";
 import { CommandSpecManager as CommandSpecLoader, CommandSpec2 } from "./CommandSpec";
 
 const DEFAULT_KEY = "DEFAULT"
@@ -477,54 +476,6 @@ export class PlatformCommandHandler {
         console.log("result txId: " + txId)
     }
 
-    // @command(new CommandSpec([new FieldSpec("destination"), new FieldSpec("stakeAmount"), new FieldSpec("endTimeDays")], "Add current node to default subnet (sign and issue the transaction)"))
-    // async addValidator(destination: string, stakeAmount:number, endTimeDays:number) {
-    //     let now = moment().seconds(0).milliseconds(0)
-    //     let startTime = now.clone().add(1, "minute")
-
-    //     let endTime = now.clone().add(endTimeDays, "days")
-
-    //     let user = this._getActiveUser()
-    //     if (!user) {
-    //         return
-    //     }
-
-    //     let txId = await App.ava.PChain().addValidator(
-    //         user.username,
-    //         user.password,
-    //         App.avaClient.nodeId, 
-    //         startTime.toDate(), 
-    //         endTime.toDate(), 
-    //         new BN(stakeAmount),
-    //         destination,
-    //         new BN(10))
-        
-    //     log.info("transactionId", txId)
-    // }
-
-    @command(new CommandSpec([new FieldSpec("nodeId"), new FieldSpec("subnetId"), new FieldSpec("weight"), new FieldSpec("endTimeDays")], "Add a validator to a Subnet other than the Primary Network."))
-    async addSubnetValidator(nodeId:string, subnetId:string, weight: number, endTimeDays: number) {
-        let now = moment().seconds(0).milliseconds(0)
-        let startTime = now.clone().add(1, "minute")
-        let endTime = now.clone().add(endTimeDays, "days")
-
-        let user = this._getActiveUser()
-        if (!user) {
-            return
-        }
-
-        let txId = await App.ava.PChain().addSubnetValidator(
-            user.username,
-            user.password,
-            nodeId,
-            subnetId,
-            startTime.toDate(),
-            endTime.toDate(),
-            weight)
-
-        log.info("transactionId", txId)
-    }
-
     @command(new CommandSpec([new FieldSpec("subnetId", DEFAULT_KEY)], "List pending validator set for a subnet, or the Default Subnet if no subnetId is specified"))
     async getPendingValidators(subnetId?) {
         let pv = await App.ava.PChain().getPendingValidators(subnetId)
@@ -982,10 +933,6 @@ export class CommandHandler {
         CommandRegistry.registerCommandHandler(CommandContext.Platform, this.platformHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Health, this.healthHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Shell, this.shellHandler)
-
-        // Register command models
-        CommandRegistry.registerCommandModel(new AddValidatorCommand())
-        CommandRegistry.registerCommandModel(new AddDelegatorCommand())
     }
 
     async init() {

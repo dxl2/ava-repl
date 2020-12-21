@@ -1,0 +1,48 @@
+{
+    "output": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The username of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "nodeID", 
+            "desc": "The node ID of the validator"
+        }, 
+        {
+            "type": "Date", 
+            "name": "startTime", 
+            "desc": "Javascript Date object for the start time to validate"
+        }, 
+        {
+            "type": "Date", 
+            "name": "endTime", 
+            "desc": "Javascript Date object for the end time to validate"
+        }, 
+        {
+            "type": "BN", 
+            "name": "stakeAmount", 
+            "desc": "The amount of nAVAX the validator is staking as"
+        }, 
+        {
+            "type": "string", 
+            "name": "rewardAddress", 
+            "desc": "The address the validator reward will go to, if there is one."
+        }, 
+        {
+            "optional": true, 
+            "type": "BN", 
+            "name": "delegationFeeRate", 
+            "desc": "Optional. A {@link https://github.com/indutny/bn.js/|BN} for the percent fee this validator"
+        }
+    ], 
+    "name": "addValidator", 
+    "desc": "Add a validator to the Primary Network. a {@link https://github.com/indutny/bn.js/|BN} charges when others delegate stake to them. Up to 4 decimal places allowed; additional decimal places are ignored. Must be between 0 and 100, inclusive. For example, if delegationFeeRate is 1.2345 and someone delegates to this validator, then when the delegation period is over, 1.2345% of the reward goes to the validator and the rest goes to the delegator."
+}

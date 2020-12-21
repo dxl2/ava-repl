@@ -1,0 +1,42 @@
+{
+    "output": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The username of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "nodeID", 
+            "desc": "The node ID of the validator"
+        }, 
+        {
+            "type": "string", 
+            "name": "subnetID", 
+            "desc": "Either a {@link https://github.com/feross/buffer|Buffer} or a cb58 serialized string for the SubnetID or its alias."
+        }, 
+        {
+            "type": "Date", 
+            "name": "startTime", 
+            "desc": "Javascript Date object for the start time to validate"
+        }, 
+        {
+            "type": "Date", 
+            "name": "endTime", 
+            "desc": "Javascript Date object for the end time to validate"
+        }, 
+        {
+            "type": "number", 
+            "name": "weight", 
+            "desc": "The validator\u2019s weight used for sampling"
+        }
+    ], 
+    "name": "addSubnetValidator", 
+    "desc": "Add a validator to a Subnet other than the Primary Network. The validator must validate the Primary Network for the entire duration they validate this Subnet."
+}

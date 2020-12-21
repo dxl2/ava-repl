@@ -29,8 +29,6 @@ async function main() {
 
     let outPath = AppPath.BIN_DIR + path.sep + "arepl_bash_complete_data.sh"
     fs.writeFileSync(outPath, tout)
-
-    await AppRuntime.sleep(100000)
 }
 
 main()

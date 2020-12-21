@@ -11,7 +11,8 @@ export enum CommandSpecDataType {
     String = "string",
     NumberArray = "Array<number>",
     StringArray = "Array<string>",
-    BigNumber = "BN"
+    BigNumber = "BN",
+    Date = "Date"
 }
 
 export class CommandParamSpec {
@@ -35,6 +36,8 @@ export class CommandParamSpec {
             return ValueFormatter.asStringArray(v)
         } else if (this.type == CommandSpecDataType.BigNumber) {
             return new BN(v)
+        } else if (this.type == CommandSpecDataType.Date) {
+            return new Date(+v * 1000)
         }
         
         else {

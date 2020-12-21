@@ -2,9 +2,6 @@
 
 import re, json, os
 
-S = '''
-'''
-
 class TypeParser(object):
     def __init__(self, ep):
         self.endpoint = ep
@@ -161,11 +158,18 @@ class TypeParser(object):
         out["desc"] = " ".join(tokens[2:])
         return out
 
+def readFile(name):
+    currentDir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(currentDir, "..", "tmp", name)
+
+    with open(path) as f:
+        return f.read()
 
 
 def main():
-    EP = "contract"
-    out = TypeParser(EP).parseBlock(S)
+    s = readFile("platform1")
+    EP = "platform"
+    out = TypeParser(EP).parseBlock(s)
 
     currentDir = os.path.dirname(os.path.abspath(__file__))
     specDir = os.path.join(currentDir, "..", "specs", EP)

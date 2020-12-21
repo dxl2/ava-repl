@@ -1,0 +1,42 @@
+{
+    "output": "string", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "username", 
+            "desc": "The username of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "password", 
+            "desc": "The password of the Keystore user"
+        }, 
+        {
+            "type": "string", 
+            "name": "nodeID", 
+            "desc": "The node ID of the delegatee"
+        }, 
+        {
+            "type": "Date", 
+            "name": "startTime", 
+            "desc": "Javascript Date object for when the delegator starts delegating"
+        }, 
+        {
+            "type": "Date", 
+            "name": "endTime", 
+            "desc": "Javascript Date object for when the delegator starts delegating"
+        }, 
+        {
+            "type": "BN", 
+            "name": "stakeAmount", 
+            "desc": "The amount of nAVAX the delegator is staking as"
+        }, 
+        {
+            "type": "string", 
+            "name": "rewardAddress", 
+            "desc": "The address of the account the staked AVAX and validation reward"
+        }
+    ], 
+    "name": "addDelegator", 
+    "desc": "Add a delegator to the Primary Network. a {@link https://github.com/indutny/bn.js/|BN} (if applicable) are sent to at endTime"
+}
