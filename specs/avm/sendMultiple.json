@@ -1,0 +1,41 @@
+{
+    "output": "object",
+    "params": [
+        {
+            "type": "string",
+            "name": "username",
+            "desc": "The Keystore user that controls the X-Chain account specified in `to`"
+        },
+        {
+            "type": "string",
+            "name": "password",
+            "desc": "The password of the Keystore user"
+        },
+        {
+            "type": "JsonFile",
+            "name": "sendOutputJsonFile",
+            "desc": "Path to JSON file containing the array of SendOutputs"
+        },
+        {
+            "type": "Array<string>",
+            "name": "from",
+            "desc": "An array of addresses managed by the node's keystore for this blockchain which will fund this transaction",
+            "optional": true
+        },
+        {
+            "type": "string",
+            "name": "changeAddr",
+            "desc": "An address to send the change",
+            "optional": true
+        },
+        {
+            "type": "string",
+            "name": "memo",
+            "desc": "String which contains arbitrary bytes, up to 256 bytes",
+            "optional": true
+        }
+    ],
+    "name": "sendMultiple",
+    "desc": "Sends an amount of assetID to an array of specified addresses from a list of owned of addresses.",
+    "isManual": true
+}

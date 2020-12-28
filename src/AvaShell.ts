@@ -9,6 +9,7 @@ import { StringUtility } from "./StringUtility";
 import { AppRuntime } from "./AppRuntime";
 import "./Custom";
 import { CommandPromptHandler, CommandPrompt, CommandPromptQuestion } from "./CommandPrompt";
+import { CommandRegistry } from "./CommandRegistry";
 
 let replServer
 
@@ -151,14 +152,20 @@ export class AvaShell {
 
                 return [this.appendSeparator(completions), params[0]]
             } else {
-                let commandSpec = App.commandHandler.getCommandSpec(params[0], params[1])
+                let commandSpecLegacy = App.commandHandler.getCommandSpec(params[0], params[1])
+                let commandSpec = CommandRegistry.getCommandSpec(params[0], params[1])
+
                 // log.info("ddx cs", commandSpec)
-                if (commandSpec) {
+                if (commandSpecLegacy) {
+                    console.log("\n")
+                    commandSpecLegacy.printUsage()
+                    return [[""], line]
+                } else if (commandSpec) {
                     console.log("\n")
                     commandSpec.printUsage()
                     return [[""], line]
-
-                } else {
+                }                
+                else {
                     let completions = this.getCompletions(params[1], App.commandHandler.getContextCommands(params[0]))
                     return [this.appendSeparator(completions), params[1]]
                 }                

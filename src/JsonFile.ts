@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { log } from "./AppLog";
 
 export class JsonFile {
     constructor(public path: string) { }
@@ -11,6 +12,7 @@ export class JsonFile {
 
     read() {
         if (!fs.existsSync(this.path)) {
+            log.error("File path does not exist:", this.path)
             return null
         }
 

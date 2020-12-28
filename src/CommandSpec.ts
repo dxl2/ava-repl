@@ -12,7 +12,8 @@ export enum CommandSpecDataType {
     NumberArray = "Array<number>",
     StringArray = "Array<string>",
     BigNumber = "BN",
-    Date = "Date"
+    Date = "Date",
+    JsonFile = "JsonFile"
 }
 
 export class CommandParamSpec {
@@ -124,7 +125,7 @@ export class CommandSpec2 {
         return this.useKeystore && param.name == "password"
     }
 
-    validateInput(rawValues) {
+    async validateInput(rawValues) {
         // log.info("ddx", this)
         if (rawValues.length < this.requiredParameterCount) {
             console.error(`Error: Requires at least ${this.requiredParameterCount} parameters`)
@@ -147,7 +148,13 @@ export class CommandSpec2 {
                 sanitizedInput.push(user.password)
             }
             else if (rawValues[valueIndex]) {
-                let sanitized = param.sanitize(rawValues[valueIndex])
+                let sanitized
+
+                if (param.type == CommandSpecDataType.JsonFile) {
+                    sanitized = await new JsonFile(rawValues[valueIndex]).read()
+                } else {
+                    sanitized = param.sanitize(rawValues[valueIndex])
+                }                
 
                 if (!sanitized) {
                     console.error(`Invalid input ${rawValues[valueIndex]} for field ${param.name}`)
@@ -180,7 +187,7 @@ export class CommandSpec2 {
     }
 
     async run(params) { 
-        let data = this.validateInput(params)
+        let data = await this.validateInput(params)
         if (!data) {          
             console.error("Error: invalid input")
             this.printUsage()
