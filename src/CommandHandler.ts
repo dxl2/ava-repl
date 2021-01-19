@@ -117,6 +117,27 @@ export class InfoCommandHandler {
         return App.avaClient.nodeId
     }
 
+    @command(new CommandSpec([], "Show current node IP for the Avalanche node"))
+    getIP() {
+        const ip = App.ava.getIP()
+        console.log(ip)
+        return ip
+    }
+
+    @command(new CommandSpec([], "Show current node port for the Avalanche node"))
+    getPort() {
+        const port = App.ava.getPort()
+        console.log(port)
+        return port
+    }
+
+    @command(new CommandSpec([], "Show URL of the Avalanche node"))
+    getURL() {
+        const url = App.ava.getURL()
+        console.log(url)
+        return url
+    }
+
     @command(new CommandSpec([], "Get transaction fee of the network"))
     async getTxFee() {
         let res = await App.ava.Info().getTxFee()
