@@ -12,7 +12,7 @@
   "dependencies": {
     "@types/node": "^14.0.25",
     "@types/reflect-metadata": "^0.1.0",
-    "avalanche": "^3.1.0",
+    "avalanche": "^3.2.0",
     "bn.js": "^5.1.2",
     "bn.js-typings": "^1.0.1",
     "buffer": "^5.6.0",
