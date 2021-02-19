@@ -1,0 +1,6 @@
+{
+    "output": "boolean", 
+    "params": [], 
+    "name": "lockProfile", 
+    "desc": "Dump the mutex statistics of the node to the specified file."
+}

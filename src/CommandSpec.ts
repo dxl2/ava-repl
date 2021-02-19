@@ -180,6 +180,8 @@ export class CommandSpec2 {
             return App.ava.Auth()
         } else if (this.context == "contract") {
             return App.ava.CChain()
+        } else if (this.context == "admin") {
+            return App.ava.Admin()
         }
         else {
             throw new Error("Unknown endpoint: " + this.context)

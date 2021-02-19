@@ -550,83 +550,6 @@ export class PlatformCommandHandler {
     }
 }
 
-export class AdminCommandHandler {
-    @command(new CommandSpec([new FieldSpec("endpoint"), new FieldSpec("alias")], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
-    async alias(endpoint, alias) {
-        let res = await App.ava.Admin().alias(endpoint, alias)
-        console.log(OutputPrinter.pprint(res))
-    }
-
-    @command(new CommandSpec([new FieldSpec("chain"), new FieldSpec("alias")], "Give a blockchain an alias, a different name that can be used any place the blockchain’s ID is used."))
-    async aliasChain(chain, alias) {
-        let res = await App.ava.Admin().aliasChain(chain, alias)
-        console.log(OutputPrinter.pprint(res))
-    }
-
-    @command(new CommandSpec([], "Writes a profile of mutex statistics to lock.profile"))
-    async lockProfile() {
-        let res = await App.ava.Admin().lockProfile()
-        console.log(OutputPrinter.pprint(res))
-    }
-
-    @command(new CommandSpec([], "Writes a memory profile of the to mem.profile"))
-    async memoryProfile() {
-        let res = await App.ava.Admin().memoryProfile()
-        console.log(OutputPrinter.pprint(res))
-    }
-
-    @command(new CommandSpec([], "Start profiling the CPU utilization of the node. To stop, call stopCPUProfiler. On stop, writes the profile to cpu.profile"))
-    async startCPUProfiler() {
-        let res = await App.ava.Admin().startCPUProfiler()
-        console.log(OutputPrinter.pprint(res))
-    }
-
-    @command(new CommandSpec([], "Stop the CPU profile that was previously started"))
-    async stopCPUProfiler() {
-        let res = await App.ava.Admin().stopCPUProfiler()
-        console.log(OutputPrinter.pprint(res))
-    }
-}
-
-export class AuthCommandHandler {
-    @command(new CommandSpec([], "Assign an API endpoint an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias."))
-    async alias(endpoint, alias) {
-        let res = await App.ava.Admin().alias(endpoint, alias)
-        OutputPrinter.pprint(res)
-    }
-
-    @command(new CommandSpec([], "Give a blockchain an alias, a different name that can be used any place the blockchain’s ID is used."))
-    async aliasChain(chain, alias) {
-        let res = await App.ava.Admin().aliasChain(chain, alias)
-        OutputPrinter.pprint(res)
-    }
-
-    @command(new CommandSpec([], "Writes a profile of mutex statistics to lock.profile"))
-    async lockProfile() {
-        let res = await App.ava.Admin().lockProfile()
-        OutputPrinter.pprint(res)
-    }
-
-    @command(new CommandSpec([], "Writes a memory profile of the to mem.profile"))
-    async memoryProfile() {
-        let res = await App.ava.Admin().memoryProfile()
-        OutputPrinter.pprint(res)
-    }
-
-    @command(new CommandSpec([], "Start profiling the CPU utilization of the node. To stop, call stopCPUProfiler. On stop, writes the profile to cpu.profile"))
-    async startCPUProfiler() {
-        let res = await App.ava.Admin().startCPUProfiler()
-        OutputPrinter.pprint(res)
-    }
-
-    @command(new CommandSpec([], "Stop the CPU profile that was previously started"))
-    async stopCPUProfiler() {
-        let res = await App.ava.Admin().stopCPUProfiler()
-        
-        OutputPrinter.pprint(res)
-    }
-}
-
 export class AvmCommandHandler {
     _getActiveUser() {
         let user = App.avaClient.keystoreCache.getActiveUser()
@@ -928,7 +851,6 @@ export class CommandHandler {
     infoHandler: InfoCommandHandler
     keystoreHandler: KeystoreCommandHandler
     avmHandler: AvmCommandHandler
-    adminHandler: AdminCommandHandler
     platformHandler: PlatformCommandHandler
     healthHandler: HealthCommandHandler
     shellHandler: ShellCommandHandler
@@ -944,11 +866,9 @@ export class CommandHandler {
         this.platformHandler = new PlatformCommandHandler()
         this.healthHandler = new HealthCommandHandler()
         this.shellHandler = new ShellCommandHandler()
-        this.adminHandler = new AdminCommandHandler()
 
         CommandRegistry.registerCommandHandler(CommandContext.Metrics, this.metricsHandler)
         CommandRegistry.registerCommandHandler(CommandContext.AVM, this.avmHandler)
-        CommandRegistry.registerCommandHandler(CommandContext.Admin, this.adminHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Keystore, this.keystoreHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Info, this.infoHandler)
         CommandRegistry.registerCommandHandler(CommandContext.Platform, this.platformHandler)

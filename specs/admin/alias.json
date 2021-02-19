@@ -1,0 +1,17 @@
+{
+    "output": "boolean", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "endpoint", 
+            "desc": "The original endpoint of the API. endpoint should only include the part of"
+        }, 
+        {
+            "type": "string", 
+            "name": "alias", 
+            "desc": "The API being aliased can now be called at ext/alias"
+        }
+    ], 
+    "name": "alias", 
+    "desc": "Assign an API an alias, a different endpoint for the API. The original endpoint will still work. This change only affects this node; other nodes will not know about this alias. the endpoint after /ext/"
+}

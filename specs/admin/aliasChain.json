@@ -1,0 +1,17 @@
+{
+    "output": "boolean", 
+    "params": [
+        {
+            "type": "string", 
+            "name": "endpoint", 
+            "desc": "The blockchain's ID"
+        }, 
+        {
+            "type": "string", 
+            "name": "alias", 
+            "desc": "Can now be used in place of the blockchain\u2019s ID (in API endpoints, for example)"
+        }
+    ], 
+    "name": "aliasChain", 
+    "desc": "Give a blockchain an alias, a different name that can be used any place the blockchain\u2019s ID is used."
+}

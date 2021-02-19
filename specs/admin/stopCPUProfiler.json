@@ -1,0 +1,6 @@
+{
+    "output": "boolean", 
+    "params": [], 
+    "name": "stopCPUProfiler", 
+    "desc": "Stop the CPU profile that was previously started."
+}

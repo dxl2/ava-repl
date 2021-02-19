@@ -1,0 +1,6 @@
+{
+    "output": "boolean", 
+    "params": [], 
+    "name": "startCPUProfiler", 
+    "desc": "Start profiling the cpu utilization of the node. Will dump the profile information into the specified file on stop."
+}
