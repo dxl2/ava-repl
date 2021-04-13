@@ -28,7 +28,6 @@ export class CommandParamSpec {
     }
 
     sanitize(v) {
-        // log.info(`sanitize ${this.name} ${this.type} ${v}`)
         if (this.type == CommandSpecDataType.String) {
             return v
         } else if (this.type == CommandSpecDataType.NumberArray) {
@@ -108,7 +107,6 @@ export class CommandSpec2 {
     get requiredParameterCount() {
         let o = 0
         for (let p of this.params) {
-            // log.info("ddx", p)
             if (!p.optional) {
                 o++
             }
@@ -126,7 +124,6 @@ export class CommandSpec2 {
     }
 
     async validateInput(rawValues) {
-        // log.info("ddx", this)
         if (rawValues.length < this.requiredParameterCount) {
             console.error(`Error: Requires at least ${this.requiredParameterCount} parameters`)
             return null
@@ -134,13 +131,10 @@ export class CommandSpec2 {
 
         let user = App.avaClient.keystoreCache.getActiveUser()
 
-        // console.log("raw", rawValues)
-        // console.log("isKeystore", this.useKeystore)
         let sanitizedInput = []
         let valueIndex = 0
         for (let i=0; i<this.params.length; i++) {
             let param = this.params[i]
-            // console.log(param)
 
             if (this.isKeystoreUserParam(param)) {
                 sanitizedInput.push(user.username)
@@ -195,8 +189,6 @@ export class CommandSpec2 {
             this.printUsage()
             return
         }
-
-        // log.info("ddx sanitized", this.name, data)
 
         let ep = this.getApiEndpoint()
         let res = await ep[this.name](...data)

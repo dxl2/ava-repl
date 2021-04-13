@@ -36,16 +36,13 @@ export class PendingTxService extends PollableService {
         this.cb = cb
     }
 
-    async handleUpdate() {
-        // log.info("ddx check pending", this.pendingTxs)
-        // console.log("\nchecking")        
+    async handleUpdate() { 
         for (let tx of this.pendingTxs) {            
             if (tx.isExpired) {
                 continue
             }
 
             if (tx.state && tx.state != PendingTxState.Processing) {
-                // log.info("aalready have state")
                 continue
             }
 

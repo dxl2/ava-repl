@@ -70,7 +70,6 @@ export class AvaShell {
                 return
             }
 
-            // log.info("eval", cmd)
             if (cmd == "exit") {
                 if (App.commandHandler.activeContext) {
                     App.commandHandler.activeContext = null
@@ -90,15 +89,10 @@ export class AvaShell {
             
             let res = await App.commandHandler.handleCommand(cmd)
             this.updatePrompt()
-            // log.info("res", res)
             callback(null, res)
         } catch(error) {
             log.error(error)
-            // TODO: split unrecoverable errors
-            // return callback(new repl.Recoverable(error))
             if (error.message) {
-                // console.log(error.message)
-                // callback(null, null)
                 callback(null, `Error: ${error.message}`)
             } else {
                 callback(null, `Unexpected error`)
@@ -181,7 +175,6 @@ export class AvaShell {
     }
 
     static getCompletions(needle:string, haystack:string[]) {
-        // log.info("getCompl", needle, haystack)
         let matches = haystack.filter((c) => c.startsWith(needle))
         matches.sort()
         return matches

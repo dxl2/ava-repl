@@ -16,7 +16,6 @@ const DEFAULT_KEY = "DEFAULT"
 
 export class FieldSpec {
     constructor(public name:string, public defaultValue=null, public helpText=null) {
-
     }
 
     get toHelpString() {
@@ -76,8 +75,6 @@ const commandsMetadata = Symbol("commands");
 export { commandsMetadata }
 
 export function command(definition: any) {
-    // log.error(`defining column`, definition)
-    // return a function that binds the property name to metadata input (definition)
     return (target: object, propertyKey: string) => {
         let properties: {} = Reflect.getMetadata(commandsMetadata, target);
 
@@ -367,7 +364,6 @@ export class PlatformCommandHandler {
         }
         
         let res = await App.ava.PChain().createAddress(user.username, user.password)
-        // log.info(`created`, res)
         console.log("Created platform account: " + res)
     }
 
@@ -471,18 +467,11 @@ export class PlatformCommandHandler {
 
     @command(new CommandSpec([new FieldSpec("amount"), new FieldSpec("x-dest")], "Send AVA from an account on the P-Chain to an address on the X-Chain."))
     async exportAVAX(amount: number, dest: string) {
-        // remove any prefix X-
-        // let dparts = dest.split("-")
-        // if (dparts.length > 1) {
-        //     dest = dparts[1]
-        // }
-
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
-        // log.info("ddx export", amount, dest)
         let res = await App.ava.PChain().exportAVAX(user.username, user.password, new BN(amount), dest)
 
         console.log("Issuing Transaction...")
@@ -715,7 +704,6 @@ export class AvmCommandHandler {
         
         let res = await App.ava.XChain().listAddresses(user.username, user.password)
 
-        // console.log("Addresses for keystore: " + user.username)
         if (!res || !res.length) {
             console.log("None found")
             return
@@ -746,27 +734,15 @@ export class AvmCommandHandler {
         console.log(res)
     }
 
-    // async getBalance() {
-    //     let res = await App.ava.XChain().getAllBalances()
-    //     log.info("res", res)
-    // }
-
-    // async setActiveUser(username: string, password?: string) {
-    //     console.log(`Set active user: ${username}`)
-    //     App.avaClient.keystoreCache.addUser(new AvaKeystoreUser(username, password), true)
-    // }
-
     @command(new CommandSpec([new FieldSpec("address"), new FieldSpec("asset", "AVAX")], "Get the balance of an asset in an account"))
     async getBalance(address:string, asset:string="AVAX") {
         let bal = await App.ava.XChain().getBalance(address, asset) as BN
         console.log(`Balance on ${address} for asset ${asset}:`, OutputPrinter.pprint(bal))
-        // console.log(OutputPrinter.pprint(bal))
     }
 
     @command(new CommandSpec([new FieldSpec("address")], "Get the balance of all assets in an account"))
     async getAllBalances(address) {
         let bal = await App.ava.XChain().getAllBalances(address)
-        // log.info("ddx bal", bal)
 
         // populate asset names
         for (let entry of bal) {
@@ -781,14 +757,12 @@ export class AvmCommandHandler {
 
     @command(new CommandSpec([new FieldSpec("fromAddress"), new FieldSpec("toAddress"), new FieldSpec("amount"), new FieldSpec("asset", "AVAX")], "Sends asset from an address managed by this node's keystore to a destination address"))
     async send(fromAddress:string, toAddress:string, amount:number, asset="AVAX") {
-        // log.info("ddx", this)
         let user = this._getActiveUser()
         if (!user) {
             return
         }
 
         let res = await App.ava.XChain().send(user.username, user.password, asset, amount, toAddress, [fromAddress])
-        // console.log(`Balance on ${address} for all assets`)
         console.log("submitted transaction...")
         console.log(res)
         App.pendingTxService.add(res.txID)
@@ -1026,14 +1000,12 @@ export class CommandHandler {
 
         let handler = CommandRegistry.handlerMap[context]
         if (!handler) {
-            // throw new CommandError("Unknown context: " + context, "not_found")
             console.log("Unknown context or command")
             return
         }
        
         let methodFn = handler[method]
         if (!methodFn) {
-            // throw new CommandError(`Unknown method ${method} in context ${context}`, "not_found")
             console.log(`Unknown method ${method} in context ${context}`)
             return
         }

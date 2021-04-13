@@ -5,7 +5,6 @@ export abstract class PollableService {
     abstract async handleUpdate()
 
     async start(initialDelaySeconds = 0) {
-        // console.log(`starting service: ${this.label} every ${this.timeoutSeconds} seconds`)
         this.schedule(initialDelaySeconds)
     }
 
