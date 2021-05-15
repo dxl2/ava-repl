@@ -168,7 +168,7 @@ def readFile(name):
 
 def main():
     s = readFile("platform1")
-    EP = "platform"
+    EP = "index"
     out = TypeParser(EP).parseBlock(s)
 
     currentDir = os.path.dirname(os.path.abspath(__file__))

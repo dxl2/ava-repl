@@ -1,0 +1,25 @@
+{
+    "output": "GetContainerByIndexResponse", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "index", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "encoding", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "baseurl", 
+            "desc": ""
+        }
+    ], 
+    "name": "getContainerByIndex", 
+    "desc": "Get container by index"
+}

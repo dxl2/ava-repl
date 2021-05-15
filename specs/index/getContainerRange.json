@@ -1,0 +1,31 @@
+{
+    "output": "GetContainerRangeResponse[]", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "number", 
+            "name": "startIndex", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "number", 
+            "name": "numToFetch", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "encoding", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "baseurl", 
+            "desc": ""
+        }
+    ], 
+    "name": "getContainerRange", 
+    "desc": "Get container range"
+}

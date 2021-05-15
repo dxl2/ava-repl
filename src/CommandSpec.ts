@@ -176,6 +176,8 @@ export class CommandSpec2 {
             return App.ava.CChain()
         } else if (this.context == "admin") {
             return App.ava.Admin()
+        } else if (this.context == "index") {
+            return App.ava.Index()
         }
         else {
             throw new Error("Unknown endpoint: " + this.context)

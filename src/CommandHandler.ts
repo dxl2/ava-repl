@@ -812,7 +812,8 @@ export enum CommandContext {
     Health = "health",
     Shell = "shell",
     Admin = "admin",
-    Auth = "auth"
+    Auth = "auth",
+    Index = "index"
 }
 
 const META_COMMANDS = [

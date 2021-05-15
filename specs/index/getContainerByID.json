@@ -1,0 +1,25 @@
+{
+    "output": "GetContainerByIDResponse", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "containerID", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "encoding", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "baseurl", 
+            "desc": ""
+        }
+    ], 
+    "name": "getContainerByID", 
+    "desc": "Get contrainer by ID"
+}

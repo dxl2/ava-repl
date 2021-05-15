@@ -1,0 +1,19 @@
+{
+    "output": "GetLastAcceptedResponse", 
+    "params": [
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "encoding", 
+            "desc": ""
+        }, 
+        {
+            "optional": true, 
+            "type": "string", 
+            "name": "baseurl", 
+            "desc": ""
+        }
+    ], 
+    "name": "getLastAccepted", 
+    "desc": "Get last accepted tx, vtx or block"
+}
